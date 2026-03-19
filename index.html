@@ -647,6 +647,8 @@
       <div class="step-num">2</div>
       <div class="step-text">Click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste this:</div>
     </div>
+    <div style="position:relative;">
+    <button onclick="copyScript()" style="position:absolute;top:8px;right:8px;background:var(--accent);color:var(--accent-text);border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1;" id="copy-script-btn">Copy</button>
     <div class="script-box" id="apps-script-code">function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   if (sheet.getLastRow() === 0) {
@@ -701,7 +703,7 @@ function doGet(e) {
   });
   return ContentService.createTextOutput(JSON.stringify({rows:rows}))
     .setMimeType(ContentService.MimeType.JSON);
-}</div>
+}</div></div>
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-text">Click <strong>Deploy → New deployment</strong>. Set type to <strong>Web app</strong>, execute as <strong>Me</strong>, access to <strong>Anyone</strong>. Click Deploy and copy the URL.</div>
@@ -1134,6 +1136,15 @@ function saveSheetsUrl() {
       statusEl.style.color = 'var(--red)';
       statusEl.textContent = '✕ Could not connect. Make sure access is set to "Anyone" when deploying.';
     });
+}
+
+function copyScript() {
+  const text = document.getElementById('apps-script-code').innerText;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.getElementById('copy-script-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+  });
 }
 
 function clearSheetsUrl() {
