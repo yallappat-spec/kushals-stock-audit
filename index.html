@@ -579,6 +579,10 @@
 
   <!-- ═══ SUMMARY ═══ -->
   <div id="summary-panel" class="panel">
+    <div id="sum-loading" style="display:none;text-align:center;padding:55px 20px;color:var(--text-muted);">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">⏳</div>
+      <div style="font-size:14px;font-weight:500;">Loading submissions from Google Sheets…</div>
+    </div>
     <div id="sum-empty" class="empty-state">
       <div class="empty-icon">☐</div>
       <h3>No audits submitted yet</h3>
@@ -588,8 +592,11 @@
       <div class="metric-row" id="metric-row"></div>
       <div class="card">
         <div class="filter-bar">
-          <span style="font-size:13px;font-weight:600;">All Submissions</span>
-          <select id="f-filter" onchange="renderTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option><option>Yallappa</option><option>Rammurthy</option><option>Manjunath</option><option>Ganesh</option><option>Chandan</option><option>Jeevan</option><option>Chandrakanth</option><option>Udhaya Kumar T</option></select>
+          <span style="font-size:13px;font-weight:600;">All Submissions <span id="sum-source" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;font-family:'DM Mono',monospace;"></span></span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn-blue" id="refresh-btn" onclick="renderSummary()" style="display:none;">↻ Refresh</button>
+            <select id="f-filter" onchange="renderTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+          </div>
         </div>
         <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
       </div>
@@ -648,6 +655,10 @@
       'Store Sale','Score %','Answered','Issues Count','Issues Detail']);
   }
   var d = JSON.parse(e.postData.contents);
+  if (d._test) {
+    return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   sheet.appendRow([
     new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
     d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
@@ -655,6 +666,40 @@
     d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | ')
   ]);
   return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({rows:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var tz = Session.getScriptTimeZone();
+  var rows = data.slice(1).map(function(row) {
+    var issueStr = row[15] ? String(row[15]) : '';
+    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
+      var idx = s.indexOf(': ');
+      return idx > -1 ? {label:s.substring(0,idx), note:s.substring(idx+2)} : {label:s, note:''};
+    }) : [];
+    var ts = row[0];
+    var tsStr = ts instanceof Date
+      ? Utilities.formatDate(ts, tz, 'dd MMM, hh:mm a')
+      : String(ts);
+    var dateVal = row[3];
+    var dateStr = dateVal instanceof Date
+      ? Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd')
+      : String(dateVal);
+    return {
+      ts: tsStr, auditor: row[1], outlet: row[2], date: dateStr,
+      cluster: row[4], area: row[5], qtr: row[6], month: row[7],
+      spct: row[8], sval: row[9], sqty: row[10], sale: row[11],
+      score: row[12] !== '' ? Number(row[12]) : null,
+      answered: Number(row[13]), issues: issues
+    };
+  });
+  return ContentService.createTextOutput(JSON.stringify({rows:rows}))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
     <div class="step">
@@ -947,26 +992,73 @@ function resetForm(silent) {
 // ══════════════════════════════════════════════════════
 // SUMMARY
 // ══════════════════════════════════════════════════════
-function renderSummary() {
-  if (!submissions.length) {
-    document.getElementById('sum-empty').style.display='block';
-    document.getElementById('sum-content').style.display='none'; return;
+let displaySubs = [];
+
+async function fetchFromSheet() {
+  const res = await fetch(SHEETS_URL);
+  const json = await res.json();
+  return (json.rows || []).filter(r => !r._test).reverse(); // newest first
+}
+
+async function renderSummary() {
+  const loading = document.getElementById('sum-loading');
+  const empty   = document.getElementById('sum-empty');
+  const content = document.getElementById('sum-content');
+  const source  = document.getElementById('sum-source');
+  const refreshBtn = document.getElementById('refresh-btn');
+
+  if (SHEETS_URL) {
+    loading.style.display = 'block';
+    empty.style.display   = 'none';
+    content.style.display = 'none';
+    try {
+      displaySubs = await fetchFromSheet();
+      source.textContent = '— from Google Sheets';
+      refreshBtn.style.display = 'inline-flex';
+    } catch(err) {
+      displaySubs = [...submissions].reverse();
+      source.textContent = '— Sheets unreachable, showing local';
+      refreshBtn.style.display = 'inline-flex';
+    }
+  } else {
+    displaySubs = [...submissions].reverse();
+    source.textContent = '';
+    refreshBtn.style.display = 'none';
   }
-  document.getElementById('sum-empty').style.display='none';
-  document.getElementById('sum-content').style.display='block';
-  const total=submissions.length,clean=submissions.filter(s=>!s.issues.length).length,totalIssues=submissions.reduce((a,s)=>a+s.issues.length,0),scores=submissions.filter(s=>s.score!==null).map(s=>s.score),avg=scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
-  document.getElementById('metric-row').innerHTML=`<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div><div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div><div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div><div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
-  // refresh filter dropdown with current auditor list
-  const ff=document.getElementById('f-filter');
-  ff.innerHTML='<option value="">All auditors</option>'+LISTS.auditor.map(v=>`<option>${v}</option>`).join('');
+
+  loading.style.display = 'none';
+
+  if (!displaySubs.length) {
+    empty.style.display   = 'block';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display   = 'none';
+  content.style.display = 'block';
+
+  const total = displaySubs.length;
+  const clean = displaySubs.filter(s => !s.issues.length).length;
+  const totalIssues = displaySubs.reduce((a,s) => a + s.issues.length, 0);
+  const scores = displaySubs.filter(s => s.score !== null).map(s => s.score);
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+
+  document.getElementById('metric-row').innerHTML =
+    `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
+    `<div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+
+  const ff = document.getElementById('f-filter');
+  const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
+  ff.innerHTML = '<option value="">All auditors</option>' + auditors.map(v=>`<option>${v}</option>`).join('');
   renderTable();
 }
 
 function renderTable() {
-  const filter=document.getElementById('f-filter').value;
-  const rows=filter?submissions.filter(s=>s.auditor===filter):submissions;
-  if(!rows.length){document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';return;}
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th></tr></thead><tbody>${rows.map(s=>{const sc=s.score,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?s.spct+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td></tr>`;}).join('')}</tbody>`;
+  const filter = document.getElementById('f-filter').value;
+  const rows   = filter ? displaySubs.filter(s=>s.auditor===filter) : displaySubs;
+  if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th></tr></thead><tbody>${rows.map(s=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?s.spct+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td></tr>`;}).join('')}</tbody>`;
 }
 
 // ══════════════════════════════════════════════════════
