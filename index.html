@@ -37,7 +37,7 @@
   .sync-dot.spin{background:#f0c040;animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
   /* SHEETS MODAL */
-  .sheets-modal{max-width:520px;}
+  .sheets-modal{max-width:520px;max-height:90vh;overflow-y:auto;}
   .sheets-modal p{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;}
   .sheets-modal code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
   .sheets-modal .step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
@@ -645,10 +645,9 @@
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <div class="step-text">Click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste this:</div>
+      <div class="step-text">Click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste the script. <button onclick="copyScript()" id="copy-script-btn" style="background:var(--accent);color:var(--accent-text);border:none;padding:3px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:6px;">📋 Copy Script</button></div>
     </div>
-    <div style="position:relative;">
-    <button onclick="copyScript()" style="position:absolute;top:8px;right:8px;background:var(--accent);color:var(--accent-text);border:none;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;z-index:1;" id="copy-script-btn">Copy</button>
+    <div style="position:relative;display:none;">
     <div class="script-box" id="apps-script-code">function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   if (sheet.getLastRow() === 0) {
