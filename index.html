@@ -27,6 +27,23 @@
   .topbar h1{font-size:15px;font-weight:600;color:#F0EDE6;}
   .topbar p{font-size:12px;color:rgba(255,255,255,0.5);margin-top:1px;}
   .topbar-badge{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px;font-size:12px;color:rgba(255,255,255,0.7);font-family:'DM Mono',monospace;}
+  .btn-sheets{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:4px 14px;font-size:12px;color:rgba(255,255,255,0.7);font-family:'DM Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.15s;}
+  .btn-sheets:hover{background:rgba(255,255,255,0.18);}
+  .btn-sheets.synced{color:#8cdb6a;}
+  .btn-sheets.error{color:#f59090;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;}
+  .sync-dot.ok{background:#8cdb6a;}
+  .sync-dot.err{background:#f59090;}
+  .sync-dot.spin{background:#f0c040;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  /* SHEETS MODAL */
+  .sheets-modal{max-width:520px;}
+  .sheets-modal p{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;}
+  .sheets-modal code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
+  .sheets-modal .step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .sheets-modal .step-num{background:var(--accent);color:var(--accent-text);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .sheets-modal .step-text{font-size:13px;color:var(--text-muted);line-height:1.5;}
+  .script-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-muted);white-space:pre;overflow-x:auto;margin:10px 0;line-height:1.6;}
 
   /* TABS */
   .tabs-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;position:sticky;top:65px;z-index:99;}
@@ -162,7 +179,13 @@
       <p>Kushals Fashion Jewellery · Inventory &amp; Operations Audit</p>
     </div>
   </div>
-  <div class="topbar-badge" id="top-badge">0 submissions</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-badge" id="top-badge">0 submissions</div>
+    <button class="btn-sheets" id="sheets-btn" onclick="openSheetsModal()">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sheets-btn-label">☁ Sheets</span>
+    </button>
+  </div>
 </div>
 
 <div class="tabs-bar">
@@ -603,6 +626,61 @@
   </div>
 </div>
 
+<!-- ═══ GOOGLE SHEETS SETUP MODAL ═══ -->
+<div class="modal-overlay" id="sheets-modal">
+  <div class="modal sheets-modal" style="max-width:560px;">
+    <h2>☁ Google Sheets Backup</h2>
+    <p>Each audit you submit will be automatically saved to your Google Sheet. Follow these one-time setup steps:</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">Create a new <strong>Google Sheet</strong> and open it.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">Click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste this:</div>
+    </div>
+    <div class="script-box" id="apps-script-code">function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Timestamp','Auditor','Outlet','Date','Cluster','Area',
+      'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
+      'Store Sale','Score %','Answered','Issues Count','Issues Detail']);
+  }
+  var d = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
+    d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
+    d.score, d.answered, d.issues.length,
+    d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | ')
+  ]);
+  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">Click <strong>Deploy → New deployment</strong>. Set type to <strong>Web app</strong>, execute as <strong>Me</strong>, access to <strong>Anyone</strong>. Click Deploy and copy the URL.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">Paste the deployment URL below:</div>
+    </div>
+
+    <div class="field" style="margin-top:6px;">
+      <label>Apps Script Web App URL <span class="req">*</span></label>
+      <input type="url" id="sheets-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div id="sheets-status" style="font-size:12px;margin-top:6px;display:none;"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-sec" onclick="clearSheetsUrl()" style="color:var(--red);">✕ Disconnect</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-sec" onclick="closeSheetsModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveSheetsUrl()">Save & Test</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════════
 // DATA
@@ -845,7 +923,9 @@ function submitAudit() {
   const answered = CHECKS.filter(c=>checkStates[c.id]).length;
   const ok = CHECKS.filter(c=>checkStates[c.id]==='ok').length;
   const score = answered ? Math.round((ok/answered)*100) : null;
-  submissions.push({auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:document.getElementById('f-spct').value,sval:document.getElementById('f-sval').value,sqty:document.getElementById('f-sqty').value,sale:document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})});
+  const entry = {auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:document.getElementById('f-spct').value,sval:document.getElementById('f-sval').value,sqty:document.getElementById('f-sqty').value,sale:document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  submissions.push(entry);
+  syncToSheet(entry);
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
   document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
@@ -898,7 +978,7 @@ function showToast(id) {
 }
 
 document.querySelectorAll('.modal-overlay').forEach(mo=>{
-  mo.addEventListener('click',e=>{if(e.target===mo){mo.classList.remove('open');}});
+  mo.addEventListener('click',e=>{if(e.target===mo){mo.classList.remove('open'); document.getElementById('sheets-status').style.display='none';}});
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
@@ -909,11 +989,92 @@ document.addEventListener('keydown',e=>{
 });
 
 // ══════════════════════════════════════════════════════
+// GOOGLE SHEETS SYNC
+// ══════════════════════════════════════════════════════
+let SHEETS_URL = localStorage.getItem('kfl_sheets_url') || '';
+
+function updateSheetsIndicator() {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sheets-btn-label');
+  if (SHEETS_URL) {
+    dot.className = 'sync-dot ok';
+    lbl.textContent = '☁ Sheets';
+  } else {
+    dot.className = 'sync-dot';
+    lbl.textContent = '☁ Sheets';
+  }
+}
+
+function openSheetsModal() {
+  document.getElementById('sheets-url-input').value = SHEETS_URL;
+  document.getElementById('sheets-status').style.display = 'none';
+  document.getElementById('sheets-modal').classList.add('open');
+}
+
+function closeSheetsModal() {
+  document.getElementById('sheets-modal').classList.remove('open');
+}
+
+function saveSheetsUrl() {
+  const url = document.getElementById('sheets-url-input').value.trim();
+  if (!url) { document.getElementById('sheets-url-input').focus(); return; }
+  const statusEl = document.getElementById('sheets-status');
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--amber)';
+  statusEl.textContent = '⏳ Testing connection…';
+  const testPayload = {auditor:'TEST',outlet:'TEST',date:'',cluster:'',area:'',qtr:'',month:'',spct:'',sval:'',sqty:'',sale:'',score:null,answered:0,issues:[],_test:true};
+  fetch(url, {method:'POST', body:JSON.stringify(testPayload)})
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        SHEETS_URL = url;
+        localStorage.setItem('kfl_sheets_url', url);
+        updateSheetsIndicator();
+        statusEl.style.color = 'var(--green)';
+        statusEl.textContent = '✓ Connected! Your audits will now sync automatically.';
+        setTimeout(closeSheetsModal, 1800);
+      } else {
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = '✕ Unexpected response. Check your Apps Script and try again.';
+      }
+    })
+    .catch(() => {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '✕ Could not connect. Make sure access is set to "Anyone" when deploying.';
+    });
+}
+
+function clearSheetsUrl() {
+  if (!confirm('Disconnect Google Sheets backup?')) return;
+  SHEETS_URL = '';
+  localStorage.removeItem('kfl_sheets_url');
+  updateSheetsIndicator();
+  closeSheetsModal();
+}
+
+function syncToSheet(entry) {
+  if (!SHEETS_URL) return;
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot spin';
+  fetch(SHEETS_URL, {method:'POST', body:JSON.stringify(entry)})
+    .then(r => r.json())
+    .then(data => {
+      dot.className = data.status === 'ok' ? 'sync-dot ok' : 'sync-dot err';
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 3000);
+    })
+    .catch(() => {
+      dot.className = 'sync-dot err';
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 5000);
+    });
+}
+
+// ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
 buildChecklist();
 populateAllSelects();
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+updateSheetsIndicator();
 </script>
 
 
