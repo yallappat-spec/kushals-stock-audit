@@ -590,15 +590,41 @@
     </div>
     <div id="sum-content" style="display:none;">
       <div class="metric-row" id="metric-row"></div>
-      <div class="card">
-        <div class="filter-bar">
+
+      <!-- FILTERS + EXPORT -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <span style="font-size:13px;font-weight:600;">All Submissions <span id="sum-source" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;font-family:'DM Mono',monospace;"></span></span>
-          <div style="display:flex;gap:8px;align-items:center;">
+          <div style="display:flex;gap:8px;">
             <button class="btn-blue" id="refresh-btn" onclick="renderSummary()" style="display:none;">↻ Refresh</button>
-            <select id="f-filter" onchange="renderTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+            <button class="btn-primary" onclick="downloadCSV()" style="font-size:13px;padding:7px 16px;">↓ Export CSV</button>
           </div>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <input type="text" id="f-search" placeholder="🔍 Search outlet..." oninput="applyFilters()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+          <select id="f-qtr-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+            <option value="">All Quarters</option>
+            <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+          </select>
+          <select id="f-month-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+            <option value="">All Months</option>
+            <option>January</option><option>February</option><option>March</option><option>April</option>
+            <option>May</option><option>June</option><option>July</option><option>August</option>
+            <option>September</option><option>October</option><option>November</option><option>December</option>
+          </select>
+          <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+        </div>
+      </div>
+
+      <!-- SUBMISSIONS TABLE -->
+      <div class="card" style="margin-bottom:14px;">
         <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
+      </div>
+
+      <!-- GAP ANALYSIS -->
+      <div class="card" id="gap-card" style="display:none;">
+        <div class="card-title">Gap Analysis — Issues Found</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="gap-content"></div>
       </div>
     </div>
   </div>
@@ -1052,14 +1078,99 @@ async function renderSummary() {
   const ff = document.getElementById('f-filter');
   const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
   ff.innerHTML = '<option value="">All auditors</option>' + auditors.map(v=>`<option>${v}</option>`).join('');
+  // reset filters
+  ['f-search','f-qtr-filter','f-month-filter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderTable();
+  renderGapAnalysis(displaySubs);
 }
 
+function getFilteredRows() {
+  const search  = (document.getElementById('f-search')||{value:''}).value.toLowerCase();
+  const auditor = document.getElementById('f-filter').value;
+  const qtr     = document.getElementById('f-qtr-filter').value;
+  const month   = document.getElementById('f-month-filter').value;
+  return displaySubs.filter(s => {
+    if (search  && !(s.outlet||'').toLowerCase().includes(search)) return false;
+    if (auditor && s.auditor !== auditor) return false;
+    if (qtr     && s.qtr !== qtr) return false;
+    if (month   && s.month !== month) return false;
+    return true;
+  });
+}
+
+function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
+
 function renderTable() {
-  const filter = document.getElementById('f-filter').value;
-  const rows   = filter ? displaySubs.filter(s=>s.auditor===filter) : displaySubs;
+  const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
   document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th></tr></thead><tbody>${rows.map(s=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td></tr>`;}).join('')}</tbody>`;
+}
+
+function renderGapAnalysis(rows) {
+  const card = document.getElementById('gap-card');
+  if (!rows.length) { card.style.display='none'; return; }
+  card.style.display='block';
+
+  // Issue frequency
+  const issueCounts = {};
+  rows.forEach(s => s.issues.forEach(i => { issueCounts[i.label] = (issueCounts[i.label]||0)+1; }));
+  const sortedIssues = Object.entries(issueCounts).sort((a,b)=>b[1]-a[1]);
+  const maxIssue = sortedIssues[0]?.[1] || 1;
+
+  // Store-wise issue count
+  const storeCounts = {};
+  rows.forEach(s => { if (s.issues.length) storeCounts[s.outlet] = (storeCounts[s.outlet]||0)+s.issues.length; });
+  const sortedStores = Object.entries(storeCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxStore = sortedStores[0]?.[1] || 1;
+
+  document.getElementById('gap-content').innerHTML = `
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Most Common Issues</div>
+      ${sortedIssues.length ? sortedIssues.map(([label,cnt])=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+            <span style="color:var(--text);font-weight:500;">${label}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--red);font-weight:600;">${cnt}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;">
+            <div style="height:5px;border-radius:3px;background:var(--red);width:${Math.round(cnt/maxIssue*100)}%;"></div>
+          </div>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No issues found.</p>'}
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Stores with Most Issues</div>
+      ${sortedStores.length ? sortedStores.map(([outlet,cnt])=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+            <span style="color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${outlet}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--amber);font-weight:600;flex-shrink:0;margin-left:8px;">${cnt} issue${cnt>1?'s':''}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;">
+            <div style="height:5px;border-radius:3px;background:var(--amber);width:${Math.round(cnt/maxStore*100)}%;"></div>
+          </div>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No issues found.</p>'}
+    </div>`;
+}
+
+function downloadCSV() {
+  const rows = getFilteredRows();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const headers = ['Date','Outlet','Auditor','Cluster','Area','Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale','Score %','Answered','Issues Count','Issues Detail'];
+  const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const csvRows = [headers.join(','), ...rows.map(s=>[
+    s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area),
+    s.qtr, s.month, s.spct, s.sval, s.sqty, s.sale,
+    s.score, s.answered, s.issues.length,
+    escape(s.issues.map(i=>i.label+(i.note?': '+i.note:'')).join('; '))
+  ].join(','))];
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const qtr = document.getElementById('f-qtr-filter').value;
+  const month = document.getElementById('f-month-filter').value;
+  const suffix = [month,qtr].filter(Boolean).join('-') || 'all';
+  a.download = `kushal-audit-${suffix}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
 }
 
 // ══════════════════════════════════════════════════════
