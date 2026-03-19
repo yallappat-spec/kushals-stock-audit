@@ -1155,20 +1155,36 @@ function renderGapAnalysis(rows) {
 function downloadCSV() {
   const rows = getFilteredRows();
   if (!rows.length) { alert('No data to export.'); return; }
-  const headers = ['Date','Outlet','Auditor','Cluster','Area','Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale','Score %','Answered','Issues Count','Issues Detail'];
   const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
-  const csvRows = [headers.join(','), ...rows.map(s=>[
-    s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area),
-    s.qtr, s.month, s.spct, s.sval, s.sqty, s.sale,
-    s.score, s.answered, s.issues.length,
-    escape(s.issues.map(i=>i.label+(i.note?': '+i.note:'')).join('; '))
-  ].join(','))];
-  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+
+  const baseHeaders = ['Date','Outlet','Auditor','Cluster','Area','Quarter','Month',
+    'Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale','Score %','Answered'];
+  const checkHeaders = CHECKS.map(c => c.label);
+  const headers = [...baseHeaders, ...checkHeaders].map(escape).join(',');
+
+  const csvRows = [headers, ...rows.map(s => {
+    const issueMap = {};
+    s.issues.forEach(i => { issueMap[i.label] = i.note || ''; });
+
+    const base = [
+      s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area),
+      s.qtr, s.month, s.spct, s.sval, s.sqty, s.sale, s.score, s.answered
+    ];
+    const checks = CHECKS.map(c => {
+      if (c.label in issueMap) {
+        return escape('Issue Found' + (issueMap[c.label] ? ': ' + issueMap[c.label] : ''));
+      }
+      return escape('No Issue');
+    });
+    return [...base, ...checks].join(',');
+  })];
+
+  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  const qtr = document.getElementById('f-qtr-filter').value;
+  const qtr   = document.getElementById('f-qtr-filter').value;
   const month = document.getElementById('f-month-filter').value;
-  const suffix = [month,qtr].filter(Boolean).join('-') || 'all';
+  const suffix = [month, qtr].filter(Boolean).join('-') || 'all';
   a.download = `kushal-audit-${suffix}-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
 }
