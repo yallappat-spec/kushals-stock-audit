@@ -591,40 +591,77 @@
     <div id="sum-content" style="display:none;">
       <div class="metric-row" id="metric-row"></div>
 
-      <!-- FILTERS + EXPORT -->
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-          <span style="font-size:13px;font-weight:600;">All Submissions <span id="sum-source" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;font-family:'DM Mono',monospace;"></span></span>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-blue" id="refresh-btn" onclick="renderSummary()" style="display:none;">↻ Refresh</button>
-            <button class="btn-primary" onclick="downloadCSV()" style="font-size:13px;padding:7px 16px;">↓ Export CSV</button>
+      <!-- SUB-TABS -->
+      <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0;">
+        <button id="sub-tab-all" onclick="switchSubTab('all')" style="background:none;border:none;border-bottom:2.5px solid var(--accent);padding:8px 18px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">All Submissions</button>
+        <button id="sub-tab-shrinkage" onclick="switchSubTab('shrinkage')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Shrinkage Summary</button>
+      </div>
+
+      <!-- ALL SUBMISSIONS VIEW -->
+      <div id="sub-view-all">
+        <!-- FILTERS + EXPORT -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">All Submissions <span id="sum-source" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;font-family:'DM Mono',monospace;"></span></span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-blue" id="refresh-btn" onclick="renderSummary()" style="display:none;">↻ Refresh</button>
+              <button class="btn-primary" onclick="downloadCSV()" style="font-size:13px;padding:7px 16px;">↓ Export CSV</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="f-search" placeholder="🔍 Search outlet..." oninput="applyFilters()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+            <select id="f-qtr-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="f-month-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+            <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
           </div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <input type="text" id="f-search" placeholder="🔍 Search outlet..." oninput="applyFilters()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
-          <select id="f-qtr-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
-            <option value="">All Quarters</option>
-            <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
-          </select>
-          <select id="f-month-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
-            <option value="">All Months</option>
-            <option>January</option><option>February</option><option>March</option><option>April</option>
-            <option>May</option><option>June</option><option>July</option><option>August</option>
-            <option>September</option><option>October</option><option>November</option><option>December</option>
-          </select>
-          <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+
+        <!-- SUBMISSIONS TABLE -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
+        </div>
+
+        <!-- GAP ANALYSIS -->
+        <div class="card" id="gap-card" style="display:none;">
+          <div class="card-title">Gap Analysis — Issues Found</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="gap-content"></div>
         </div>
       </div>
 
-      <!-- SUBMISSIONS TABLE -->
-      <div class="card" style="margin-bottom:14px;">
-        <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
-      </div>
-
-      <!-- GAP ANALYSIS -->
-      <div class="card" id="gap-card" style="display:none;">
-        <div class="card-title">Gap Analysis — Issues Found</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="gap-content"></div>
+      <!-- SHRINKAGE SUMMARY VIEW -->
+      <div id="sub-view-shrinkage" style="display:none;">
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">Shrinkage Summary</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-primary" onclick="downloadShrinkageCSV()" style="font-size:13px;padding:7px 16px;">↓ Export Shrinkage CSV</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="sh-search" placeholder="🔍 Search outlet..." oninput="renderShrinkageTable()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+            <select id="sh-qtr" onchange="renderShrinkageTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="sh-month" onchange="renderShrinkageTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="data-table" id="shrinkage-table"></table></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1192,6 +1229,74 @@ function renderGapAnalysis(rows) {
           </div>
         </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No issues found.</p>'}
     </div>`;
+}
+
+function switchSubTab(tab) {
+  const isAll = tab === 'all';
+  document.getElementById('sub-view-all').style.display = isAll ? '' : 'none';
+  document.getElementById('sub-view-shrinkage').style.display = isAll ? 'none' : '';
+  document.getElementById('sub-tab-all').style.borderBottomColor = isAll ? 'var(--accent)' : 'transparent';
+  document.getElementById('sub-tab-all').style.color = isAll ? 'var(--text)' : 'var(--text-muted)';
+  document.getElementById('sub-tab-all').style.fontWeight = isAll ? '600' : '500';
+  document.getElementById('sub-tab-shrinkage').style.borderBottomColor = isAll ? 'transparent' : 'var(--accent)';
+  document.getElementById('sub-tab-shrinkage').style.color = isAll ? 'var(--text-muted)' : 'var(--text)';
+  document.getElementById('sub-tab-shrinkage').style.fontWeight = isAll ? '500' : '600';
+  if (!isAll) renderShrinkageTable();
+}
+
+function getShrinkageRows() {
+  const search = (document.getElementById('sh-search')?.value || '').toLowerCase();
+  const qtr    = document.getElementById('sh-qtr')?.value || '';
+  const month  = document.getElementById('sh-month')?.value || '';
+  return displaySubs.filter(s =>
+    (!search || (s.outlet||'').toLowerCase().includes(search)) &&
+    (!qtr    || s.qtr === qtr) &&
+    (!month  || s.month === month)
+  );
+}
+
+function renderShrinkageTable() {
+  const rows = getShrinkageRows();
+  const tbl = document.getElementById('shrinkage-table');
+  if (!rows.length) {
+    tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
+    return;
+  }
+  tbl.innerHTML = `<thead><tr>
+    <th>Outlet Name</th><th>Audit Date</th><th>Cluster Manager</th><th>Area Manager</th>
+    <th>Quarter</th><th>Shrinkage %</th><th>Shrinkage Value</th><th>Shrinkage Qty</th><th>Store Sale</th>
+  </tr></thead><tbody>${rows.map(s => `<tr>
+    <td><strong style="font-size:13px;">${s.outlet||'—'}</strong></td>
+    <td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date||'—'}</td>
+    <td>${s.cluster||'—'}</td>
+    <td>${s.area||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.qtr||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-weight:600;color:${s.spct&&parseFloat(s.spct)>0?'var(--red)':'var(--green)'};">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sval||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sqty||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sale||'—'}</td>
+  </tr>`).join('')}</tbody>`;
+}
+
+function downloadShrinkageCSV() {
+  const rows = getShrinkageRows();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const headers = ['Outlet Name','Audit Date','Cluster Manager','Area Manager','Quarter',
+    'Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale'].map(escape).join(',');
+  const csvRows = [headers, ...rows.map(s => [
+    escape(s.outlet), escape(s.date), escape(s.cluster), escape(s.area), escape(s.qtr),
+    escape(s.spct?String(s.spct).replace(/%$/,'')+'%':''),
+    escape(s.sval), escape(s.sqty), escape(s.sale)
+  ].join(','))];
+  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const qtr   = document.getElementById('sh-qtr')?.value || '';
+  const month = document.getElementById('sh-month')?.value || '';
+  const suffix = [month, qtr].filter(Boolean).join('-') || 'all';
+  a.download = `kushal-shrinkage-${suffix}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
 }
 
 function downloadCSV() {
