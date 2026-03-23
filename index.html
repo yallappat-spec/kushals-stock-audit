@@ -1101,9 +1101,10 @@ function resetForm(silent) {
 let displaySubs = [];
 
 async function fetchFromSheet() {
-  const res = await fetch(SHEETS_URL);
+  const url = SHEETS_URL + (SHEETS_URL.includes('?') ? '&' : '?') + '_t=' + Date.now();
+  const res = await fetch(url, {redirect: 'follow', cache: 'no-store'});
   const json = await res.json();
-  return (json.rows || []).filter(r => !r._test).reverse(); // newest first
+  return (json.rows || []).filter(r => !r._test).reverse();
 }
 
 async function renderSummary() {
