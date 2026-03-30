@@ -885,7 +885,7 @@ let LISTS = {
 };
 
 const checkStates = {};
-const submissions = [];
+const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
 let checkModalIdx = -1;
 let quickModalKey = '';
 
@@ -1102,6 +1102,7 @@ function submitAudit() {
   const score = answered ? Math.round((ok/answered)*100) : null;
   const entry = {auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:document.getElementById('f-spct').value,sval:document.getElementById('f-sval').value,sqty:document.getElementById('f-sqty').value,sale:document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
+  localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   syncToSheet(entry);
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
@@ -1146,6 +1147,7 @@ async function renderSummary() {
     content.style.display = 'none';
     try {
       displaySubs = await fetchFromSheet();
+      localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
       source.textContent = '— from Google Sheets';
       refreshBtn.style.display = 'inline-flex';
     } catch(err) {
@@ -1611,6 +1613,14 @@ populateAllSelects();
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 updateSheetsIndicator();
 fetchChecklistFromSheets();
+// restore submission count badge from localStorage
+(function(){
+  const cnt = submissions.length;
+  if (cnt > 0) {
+    document.getElementById('tab-count').textContent = cnt;
+    document.getElementById('top-badge').textContent = cnt + ' submission' + (cnt !== 1 ? 's' : '');
+  }
+})();
 </script>
 
 
