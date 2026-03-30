@@ -712,9 +712,16 @@
     </div>
     <div style="position:relative;display:none;">
     <div class="script-box" id="apps-script-code">function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
   var d = JSON.parse(e.postData.contents);
   if (d._test) { return ok(); }
+  if (d.action === 'saveChecklist') {
+    var cfg = ss.getSheetByName('_config') || ss.insertSheet('_config');
+    cfg.clearContents();
+    cfg.getRange(1,1).setValue(JSON.stringify(d.checks));
+    return ok();
+  }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
     sheet.getRange(d.rowIndex, 1, 1, 16).setValues([[
@@ -744,7 +751,20 @@ function ok() {
 }
 
 function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (e.parameter.type === 'checklist') {
+    var cfg = ss.getSheetByName('_config');
+    if (cfg) {
+      var val = cfg.getRange(1,1).getValue();
+      if (val) {
+        return ContentService.createTextOutput(JSON.stringify({checks:JSON.parse(val)}))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({checks:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var sheet = ss.getActiveSheet();
   var data = sheet.getDataRange().getValues();
   if (data.length <= 1) {
     return ContentService.createTextOutput(JSON.stringify({rows:[]}))
@@ -836,7 +856,7 @@ function doGet(e) {
 // ══════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════
-let CHECKS = [
+const DEFAULT_CHECKS = [
   {id:'hygiene',      label:'Store Hygiene maintained',                    sub:'Whether store maintained hygiene at the store level'},
   {id:'temple',       label:'Temple polish — no deviation',                sub:'Any deviation found in temple polish process'},
   {id:'petty',        label:'Petty cash matches physical amount',          sub:'Whether petty cash matching with physical amount'},
@@ -855,6 +875,7 @@ let CHECKS = [
   {id:'display',      label:'Display — no issues found',                   sub:'Whether display issue found in the store'},
   {id:'fragrance',    label:'Fragrance pot filled with liquid',            sub:'Whether fragrance pot filled with liquid or not'},
 ];
+let CHECKS = JSON.parse(localStorage.getItem('kfl_checks') || 'null') || DEFAULT_CHECKS;
 
 let LISTS = {
   auditor: ['Yallappa','Rammurthy','Manjunath','Ganesh','Chandan','Jeevan','Chandrakanth','Udhaya Kumar T'],
@@ -962,6 +983,11 @@ function deleteCheck(idx) {
 }
 
 function saveChecklist() {
+  localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
+  if (SHEETS_URL) {
+    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveChecklist', checks:CHECKS})})
+      .catch(()=>{});
+  }
   buildChecklist();
   showToast('editor-toast');
   setTimeout(()=>goTab('form',document.querySelectorAll('.tab')[0]),700);
@@ -1566,10 +1592,25 @@ function deleteEntry(idx) {
 // ══════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════
+function fetchChecklistFromSheets() {
+  if (!SHEETS_URL) return;
+  fetch(SHEETS_URL + '?type=checklist', {cache:'no-store'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.checks && Array.isArray(data.checks) && data.checks.length > 0) {
+        CHECKS = data.checks;
+        localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
+        buildChecklist();
+      }
+    })
+    .catch(()=>{});
+}
+
 buildChecklist();
 populateAllSelects();
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 updateSheetsIndicator();
+fetchChecklistFromSheets();
 </script>
 
 
