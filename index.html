@@ -92,6 +92,12 @@
   .check-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
   .issue-wrap{display:none;margin-top:9px;}
   .issue-wrap input{font-size:13px;background:var(--red-bg);border-color:var(--red-border);}
+  .btn-photo{margin-top:7px;background:var(--bg);border:1px dashed var(--border-strong);border-radius:var(--radius-sm);padding:5px 12px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px;}
+  .btn-photo:hover{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue);}
+  .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px;}
+  .photo-preview-item{position:relative;display:inline-block;}
+  .photo-preview-item img{height:64px;width:auto;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer;}
+  .photo-remove{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
   .tog{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0;}
   .tog button{padding:6px 15px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;white-space:nowrap;border-right:1px solid var(--border);}
   .tog button:last-child{border-right:none;}
@@ -885,6 +891,7 @@ let LISTS = {
 };
 
 const checkStates = {};
+const photoStates = {}; // {checkId: [base64, ...]}
 const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
 let checkModalIdx = -1;
 let quickModalKey = '';
@@ -937,6 +944,9 @@ function buildChecklist() {
         <div class="check-sub">${c.sub}</div>
         <div class="issue-wrap" id="ib-${c.id}">
           <input type="text" placeholder="Describe the issue found..." id="it-${c.id}" />
+          <input type="file" accept="image/*" capture="environment" id="photo-input-${c.id}" style="display:none" onchange="handlePhotoUpload('${c.id}',this)">
+          <button type="button" class="btn-photo" onclick="document.getElementById('photo-input-${c.id}').click()">📷 Attach Photo</button>
+          <div class="photo-preview" id="photo-preview-${c.id}"></div>
         </div>
       </div>
       <div class="tog">
@@ -954,6 +964,44 @@ function setCheck(id, val, btn) {
   checkStates[id] = val;
   const ib = document.getElementById('ib-'+id);
   if (ib) ib.style.display = val==='issue'?'block':'none';
+}
+
+function handlePhotoUpload(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    if (!photoStates[id]) photoStates[id] = [];
+    photoStates[id].push(e.target.result);
+    renderPhotoPreview(id);
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPhotoPreview(id) {
+  const container = document.getElementById('photo-preview-' + id);
+  if (!container) return;
+  const photos = photoStates[id] || [];
+  container.innerHTML = photos.map((src, i) => `
+    <div class="photo-preview-item">
+      <img src="${src}" onclick="openPhotoViewer('${id}',${i})">
+      <button class="photo-remove" onclick="removePhoto('${id}',${i})">×</button>
+    </div>`).join('');
+}
+
+function removePhoto(id, idx) {
+  if (photoStates[id]) { photoStates[id].splice(idx, 1); renderPhotoPreview(id); }
+}
+
+function openPhotoViewer(id, idx) {
+  const src = (photoStates[id] || [])[idx];
+  if (!src) return;
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.innerHTML = `<img src="${src}" style="max-width:92vw;max-height:88vh;border-radius:8px;">`;
+  ov.onclick = () => ov.remove();
+  document.body.appendChild(ov);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1096,14 +1144,15 @@ function submitAudit() {
   const date    = document.getElementById('f-date').value;
   const cluster = document.getElementById('f-cluster').value;
   if (!auditor||!outlet||!date||!cluster) { alert('Please fill Auditor, Outlet, Date, and Cluster Manager.'); return; }
-  const issues = CHECKS.filter(c=>checkStates[c.id]==='issue').map(c=>{const t=document.getElementById('it-'+c.id);return{label:c.label,note:t?t.value.trim():''};});
+  const issues = CHECKS.filter(c=>checkStates[c.id]==='issue').map(c=>{const t=document.getElementById('it-'+c.id);return{label:c.label,note:t?t.value.trim():'',photos:photoStates[c.id]||[]};});
   const answered = CHECKS.filter(c=>checkStates[c.id]).length;
   const ok = CHECKS.filter(c=>checkStates[c.id]==='ok').length;
   const score = answered ? Math.round((ok/answered)*100) : null;
   const entry = {auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:document.getElementById('f-spct').value,sval:document.getElementById('f-sval').value,sqty:document.getElementById('f-sqty').value,sale:document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
-  syncToSheet(entry);
+  const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
+  syncToSheet(sheetsEntry);
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
   document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
@@ -1117,9 +1166,11 @@ function resetForm(silent) {
   ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   for(const k in checkStates)delete checkStates[k];
+  for(const k in photoStates)delete photoStates[k];
   document.querySelectorAll('.tog button').forEach(b=>b.classList.remove('ok','issue'));
   document.querySelectorAll('.issue-wrap').forEach(el=>el.style.display='none');
-  document.querySelectorAll('.issue-wrap input').forEach(el=>el.value='');
+  document.querySelectorAll('.issue-wrap input[type="text"]').forEach(el=>el.value='');
+  document.querySelectorAll('.photo-preview').forEach(el=>el.innerHTML='');
 }
 
 // ══════════════════════════════════════════════════════
