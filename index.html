@@ -981,10 +981,11 @@ function buildChecklist() {
         </div>
       </div>
       <div class="tog">
-        <button onclick="setCheck('${c.id}','ok',this)">No issue</button>
+        <button class="ok" onclick="setCheck('${c.id}','ok',this)">No issue</button>
         <button onclick="setCheck('${c.id}','issue',this)">Issue found</button>
       </div>
     </div>`).join('');
+  CHECKS.forEach(c => { checkStates[c.id] = 'ok'; });
   document.getElementById('edit-count').textContent = CHECKS.length;
   document.getElementById('form-check-count').textContent = '('+CHECKS.length+' points)';
 }
