@@ -105,6 +105,13 @@
   .tog button.ok{background:var(--green-bg);color:var(--green);}
   .tog button.issue{background:var(--red-bg);color:var(--red);}
 
+  /* AUDIT TYPE TOGGLE */
+  .audit-type-toggle{display:flex;gap:0;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;width:fit-content;}
+  .audit-type-toggle button{padding:8px 22px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:background 0.15s,color 0.15s;border-right:1px solid var(--border);}
+  .audit-type-toggle button:last-child{border-right:none;}
+  .audit-type-toggle button.active-stock{background:var(--accent);color:var(--accent-text);}
+  .audit-type-toggle button.active-surprise{background:#185FA5;color:#fff;}
+
   /* BUTTONS */
   .submit-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
   .btn-primary{background:var(--accent);color:var(--accent-text);border:none;padding:11px 28px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
@@ -207,6 +214,14 @@
   <div id="form-panel" class="panel active">
     <div class="toast toast-green" id="toast">✓ Audit saved. View Summary tab for results.</div>
 
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Audit Type:</span>
+      <div class="audit-type-toggle">
+        <button id="btn-stock" class="active-stock" onclick="setAuditType('stock')">📦 Stock Audit</button>
+        <button id="btn-surprise" onclick="setAuditType('surprise')">⚡ Surprise Audit</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">Store &amp; Session Details</div>
       <div class="grid3">
@@ -254,7 +269,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="shrinkage-card">
       <div class="card-title">Shrinkage &amp; Sales Data</div>
       <div class="grid3">
         <div class="field"><label>Shrinkage % <span class="req">*</span></label><input type="text" id="f-spct" placeholder="e.g. 0.12"></div>
@@ -626,6 +641,11 @@
               <option>May</option><option>June</option><option>July</option><option>August</option>
               <option>September</option><option>October</option><option>November</option><option>December</option>
             </select>
+            <select id="f-audit-type-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Audit Types</option>
+              <option value="stock">Stock Audit</option>
+              <option value="surprise">Surprise Audit</option>
+            </select>
             <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
           </div>
         </div>
@@ -894,6 +914,14 @@ const checkStates = {};
 const photoStates = {}; // {checkId: [base64, ...]}
 const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
 let checkModalIdx = -1;
+let currentAuditType = 'stock';
+
+function setAuditType(type) {
+  currentAuditType = type;
+  document.getElementById('btn-stock').className    = type === 'stock'    ? 'active-stock' : '';
+  document.getElementById('btn-surprise').className = type === 'surprise' ? 'active-surprise' : '';
+  document.getElementById('shrinkage-card').style.display = type === 'stock' ? '' : 'none';
+}
 let quickModalKey = '';
 
 // ══════════════════════════════════════════════════════
@@ -1148,7 +1176,8 @@ function submitAudit() {
   const answered = CHECKS.filter(c=>checkStates[c.id]).length;
   const ok = CHECKS.filter(c=>checkStates[c.id]==='ok').length;
   const score = answered ? Math.round((ok/answered)*100) : null;
-  const entry = {auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:document.getElementById('f-spct').value,sval:document.getElementById('f-sval').value,sqty:document.getElementById('f-sqty').value,sale:document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const isSurprise = currentAuditType === 'surprise';
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:isSurprise?'':document.getElementById('f-spct').value,sval:isSurprise?'':document.getElementById('f-sval').value,sqty:isSurprise?'':document.getElementById('f-sqty').value,sale:isSurprise?'':document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1171,6 +1200,7 @@ function resetForm(silent) {
   document.querySelectorAll('.issue-wrap').forEach(el=>el.style.display='none');
   document.querySelectorAll('.issue-wrap input[type="text"]').forEach(el=>el.value='');
   document.querySelectorAll('.photo-preview').forEach(el=>el.innerHTML='');
+  setAuditType('stock');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1244,15 +1274,17 @@ async function renderSummary() {
 }
 
 function getFilteredRows() {
-  const search  = (document.getElementById('f-search')||{value:''}).value.toLowerCase();
-  const auditor = document.getElementById('f-filter').value;
-  const qtr     = document.getElementById('f-qtr-filter').value;
-  const month   = document.getElementById('f-month-filter').value;
+  const search    = (document.getElementById('f-search')||{value:''}).value.toLowerCase();
+  const auditor   = document.getElementById('f-filter').value;
+  const qtr       = document.getElementById('f-qtr-filter').value;
+  const month     = document.getElementById('f-month-filter').value;
+  const auditType = (document.getElementById('f-audit-type-filter')||{value:''}).value;
   return displaySubs.filter(s => {
-    if (search  && !(s.outlet||'').toLowerCase().includes(search)) return false;
-    if (auditor && s.auditor !== auditor) return false;
-    if (qtr     && s.qtr !== qtr) return false;
-    if (month   && s.month !== month) return false;
+    if (search    && !(s.outlet||'').toLowerCase().includes(search)) return false;
+    if (auditor   && s.auditor !== auditor) return false;
+    if (qtr       && s.qtr !== qtr) return false;
+    if (month     && s.month !== month) return false;
+    if (auditType && (s.auditType||'stock') !== auditType) return false;
     return true;
   });
 }
@@ -1262,7 +1294,7 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':'📦 Stock'}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
 }
 
 function downloadPDF(idx) {
@@ -1320,7 +1352,7 @@ function downloadPDF(idx) {
   </style></head><body>
   <div class="header">
     <div>
-      <div class="brand">KUSHAL'S FASHION JEWELLERY — STOCK AUDIT REPORT</div>
+      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
       <div class="outlet">${s.outlet}</div>
       <div class="meta">Auditor: <strong>${s.auditor}</strong> &nbsp;|&nbsp; Date: <strong>${s.date}</strong> &nbsp;|&nbsp; Cluster: <strong>${s.cluster}</strong>${s.area ? ' &nbsp;|&nbsp; Area: <strong>'+s.area+'</strong>' : ''}</div>
       <div class="meta" style="margin-top:2px;">Quarter: <strong>${s.qtr||'—'}</strong> &nbsp;|&nbsp; Month: <strong>${s.month||'—'}</strong></div>
