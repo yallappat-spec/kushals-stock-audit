@@ -1262,7 +1262,119 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
+}
+
+function downloadPDF(idx) {
+  const s = displaySubs[idx];
+  const sc = s.score !== null && s.score !== '' ? Number(s.score) : null;
+  const scColor = sc === null ? '#888' : sc >= 80 ? '#3B6D11' : sc >= 60 ? '#854F0B' : '#A32D2D';
+  const scBg    = sc === null ? '#eee'  : sc >= 80 ? '#EAF3DE' : sc >= 60 ? '#FAEEDA' : '#FCEBEB';
+  const issueIds = new Set(s.issues.map(i => i.label));
+  const spct = s.spct ? String(s.spct).replace(/%$/,'') + '%' : '—';
+  const spctNum = parseFloat(s.spct) || 0;
+  const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
+
+  const checklistRows = CHECKS.map(c => {
+    const issue = s.issues.find(i => i.label === c.label);
+    if (issue) {
+      return `<tr style="background:#FCEBEB;">
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:13px;font-weight:500;color:#1A1A18;">${c.label}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;"><span style="background:#A32D2D;color:#fff;border-radius:4px;padding:2px 10px;font-size:11px;font-weight:600;">ISSUE FOUND</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:12px;color:#A32D2D;">${issue.note || '—'}</td>
+      </tr>`;
+    } else {
+      return `<tr style="background:#fff;">
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;color:#1A1A18;">${c.label}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;"><span style="background:#EAF3DE;color:#3B6D11;border-radius:4px;padding:2px 10px;font-size:11px;font-weight:600;">NO ISSUE</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#aaa;">—</td>
+      </tr>`;
+    }
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Audit Report — ${s.outlet}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:13px;color:#1A1A18;background:#fff;padding:32px;}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1A1A18;}
+    .brand{font-size:11px;font-weight:700;letter-spacing:1px;color:#888;margin-bottom:4px;}
+    .outlet{font-size:22px;font-weight:700;color:#1A1A18;}
+    .meta{font-size:12px;color:#666;margin-top:4px;}
+    .metrics{display:flex;gap:14px;margin-bottom:24px;}
+    .metric-box{flex:1;border-radius:8px;padding:14px 16px;border:1px solid #ddd;}
+    .metric-box .lbl{font-size:10px;font-weight:700;letter-spacing:0.5px;color:#888;text-transform:uppercase;margin-bottom:4px;}
+    .metric-box .val{font-size:22px;font-weight:700;}
+    .score-box{display:inline-flex;align-items:center;gap:16px;background:${scBg};border:1px solid ${scColor}33;border-radius:8px;padding:14px 20px;margin-bottom:24px;width:100%;}
+    .score-num{font-size:36px;font-weight:700;color:${scColor};}
+    .score-detail{font-size:13px;color:#555;}
+    .issues-section{margin-bottom:24px;}
+    .section-title{font-size:12px;font-weight:700;letter-spacing:0.5px;color:#888;text-transform:uppercase;margin-bottom:10px;}
+    .issue-item{background:#FCEBEB;border:1px solid #F7C1C1;border-radius:6px;padding:10px 14px;margin-bottom:8px;}
+    .issue-label{font-size:13px;font-weight:600;color:#A32D2D;}
+    .issue-note{font-size:12px;color:#666;margin-top:3px;}
+    table{width:100%;border-collapse:collapse;border:1px solid #eee;border-radius:8px;overflow:hidden;}
+    thead tr{background:#1A1A18;}
+    thead th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.5px;color:#E8E6DF;text-transform:uppercase;}
+    @media print{body{padding:16px;} .no-print{display:none;}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="brand">KUSHAL'S FASHION JEWELLERY — STOCK AUDIT REPORT</div>
+      <div class="outlet">${s.outlet}</div>
+      <div class="meta">Auditor: <strong>${s.auditor}</strong> &nbsp;|&nbsp; Date: <strong>${s.date}</strong> &nbsp;|&nbsp; Cluster: <strong>${s.cluster}</strong>${s.area ? ' &nbsp;|&nbsp; Area: <strong>'+s.area+'</strong>' : ''}</div>
+      <div class="meta" style="margin-top:2px;">Quarter: <strong>${s.qtr||'—'}</strong> &nbsp;|&nbsp; Month: <strong>${s.month||'—'}</strong></div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:#aaa;">${s.ts||''}</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric-box" style="background:${spctNum<0?'#FCEBEB':spctNum>0?'#FAEEDA':'#EAF3DE'};border-color:${spctNum<0?'#F7C1C1':spctNum>0?'#FAC775':'#C0DD97'};">
+      <div class="lbl">Shrinkage %</div>
+      <div class="val" style="color:${spctColor};">${spct}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Shrinkage Value (₹)</div>
+      <div class="val" style="color:#1A1A18;">${s.sval||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Shrinkage Qty</div>
+      <div class="val" style="color:#1A1A18;">${s.sqty||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Store Sale (₹)</div>
+      <div class="val" style="color:#1A1A18;">${s.sale||'—'}</div>
+    </div>
+  </div>
+
+  <div class="score-box">
+    <div class="score-num">${sc !== null ? sc + '%' : '—'}</div>
+    <div class="score-detail">
+      <div style="font-size:15px;font-weight:600;color:${scColor};">${sc===null?'Not scored':sc>=80?'Good Standing':sc>=60?'Needs Attention':'Critical'}</div>
+      <div style="color:#888;margin-top:2px;">${s.answered} of ${CHECKS.length} points answered &nbsp;|&nbsp; ${s.issues.length} issue${s.issues.length!==1?'s':''} found</div>
+    </div>
+  </div>
+
+  ${s.issues.length > 0 ? `<div class="issues-section">
+    <div class="section-title">Issues Found (${s.issues.length})</div>
+    ${s.issues.map(i=>`<div class="issue-item"><div class="issue-label">↳ ${i.label}</div>${i.note?`<div class="issue-note">${i.note}</div>`:''}</div>`).join('')}
+  </div>` : `<div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:14px 20px;margin-bottom:24px;color:#3B6D11;font-weight:600;">✓ No issues found — Clean audit</div>`}
+
+  <div class="section-title">Full Checklist</div>
+  <table>
+    <thead><tr><th>Checklist Item</th><th>Status</th><th>Remarks</th></tr></thead>
+    <tbody>${checklistRows}</tbody>
+  </table>
+
+  <div style="margin-top:24px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:14px;">
+    Kushal's Fashion Jewellery — Confidential Audit Report &nbsp;|&nbsp; Generated ${new Date().toLocaleString('en-IN')}
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 function renderGapAnalysis(rows) {
