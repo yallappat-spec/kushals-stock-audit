@@ -1281,7 +1281,7 @@ function downloadPDF(idx) {
       return `<tr style="background:#FCEBEB;">
         <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:13px;font-weight:500;color:#1A1A18;">${c.label}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;"><span style="background:#A32D2D;color:#fff;border-radius:4px;padding:2px 10px;font-size:11px;font-weight:600;">ISSUE FOUND</span></td>
-        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:12px;color:#A32D2D;">${issue.note || '—'}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:12px;color:#A32D2D;">${issue.note || '—'}${(issue.photos&&issue.photos.length)?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${issue.photos.map(p=>`<img src="${p}" style="height:72px;width:auto;border-radius:4px;border:1px solid #F7C1C1;object-fit:cover;">`).join('')}</div>`:''}</td>
       </tr>`;
     } else {
       return `<tr style="background:#fff;">
@@ -1357,7 +1357,8 @@ function downloadPDF(idx) {
 
   ${s.issues.length > 0 ? `<div class="issues-section">
     <div class="section-title">Issues Found (${s.issues.length})</div>
-    ${s.issues.map(i=>`<div class="issue-item"><div class="issue-label">↳ ${i.label}</div>${i.note?`<div class="issue-note">${i.note}</div>`:''}</div>`).join('')}
+    ${s.issues.map(i=>`<div class="issue-item"><div class="issue-label">↳ ${i.label}</div>${i.note?`<div class="issue-note">${i.note}</div>`:''
+    }${(i.photos&&i.photos.length)?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${i.photos.map(p=>`<img src="${p}" style="height:100px;width:auto;border-radius:5px;border:1px solid #F7C1C1;object-fit:cover;">`).join('')}</div>`:''}</div>`).join('')}
   </div>` : `<div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:14px 20px;margin-bottom:24px;color:#3B6D11;font-weight:600;">✓ No issues found — Clean audit</div>`}
 
   <div class="section-title">Full Checklist</div>
