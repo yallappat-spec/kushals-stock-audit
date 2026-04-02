@@ -750,24 +750,26 @@
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
-    sheet.getRange(d.rowIndex, 1, 1, 16).setValues([[
+    sheet.getRange(d.rowIndex, 1, 1, 17).setValues([[
       new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
       d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
       d.score, d.answered, d.issues.length,
-      d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | ')
+      d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
+      d.auditType || 'stock'
     ]]);
     return ok();
   }
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Timestamp','Auditor','Outlet','Date','Cluster','Area',
       'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
-      'Store Sale','Score %','Answered','Issues Count','Issues Detail']);
+      'Store Sale','Score %','Answered','Issues Count','Issues Detail','Audit Type']);
   }
   sheet.appendRow([
     new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
     d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
     d.score, d.answered, d.issues.length,
-    d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | ')
+    d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
+    d.auditType || 'stock'
   ]);
   return ok();
 }
@@ -817,7 +819,8 @@ function doGet(e) {
       cluster: row[4], area: row[5], qtr: row[6], month: row[7],
       spct: row[8], sval: row[9], sqty: row[10], sale: row[11],
       score: row[12] !== '' ? Number(row[12]) : null,
-      answered: Number(row[13]), issues: issues
+      answered: Number(row[13]), issues: issues,
+      auditType: row[16] ? String(row[16]) : 'stock'
     };
   });
   return ContentService.createTextOutput(JSON.stringify({rows:rows}))
