@@ -1780,6 +1780,7 @@ function deleteEntry(idx) {
     fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'delete', rowIndex:s._row})}).catch(()=>{});
   }
   displaySubs.splice(idx, 1);
+  localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
   renderTable();
   renderGapAnalysis(getFilteredRows());
   // update metrics
