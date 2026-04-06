@@ -111,6 +111,7 @@
   .audit-type-toggle button:last-child{border-right:none;}
   .audit-type-toggle button.active-stock{background:var(--accent);color:var(--accent-text);}
   .audit-type-toggle button.active-surprise{background:#185FA5;color:#fff;}
+  .audit-type-toggle button.active-cctv{background:#6B21A8;color:#fff;}
 
   /* BUTTONS */
   .submit-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
@@ -219,6 +220,7 @@
       <div class="audit-type-toggle">
         <button id="btn-stock" class="active-stock" onclick="setAuditType('stock')">📦 Stock Audit</button>
         <button id="btn-surprise" onclick="setAuditType('surprise')">⚡ Surprise Audit</button>
+        <button id="btn-cctv" onclick="setAuditType('cctv')">📹 CCTV Audit</button>
       </div>
     </div>
 
@@ -242,6 +244,12 @@
         <div class="field">
           <label>Audit Date <span class="req">*</span></label>
           <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="grid3" id="cctv-extra-row" style="display:none;">
+        <div class="field">
+          <label>Watched Date</label>
+          <input type="date" id="f-watched-date">
         </div>
       </div>
       <div class="grid3">
@@ -645,6 +653,7 @@
               <option value="">All Audit Types</option>
               <option value="stock">Stock Audit</option>
               <option value="surprise">Surprise Audit</option>
+              <option value="cctv">CCTV Audit</option>
             </select>
             <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
           </div>
@@ -906,6 +915,35 @@ const DEFAULT_CHECKS = [
 ];
 let CHECKS = JSON.parse(localStorage.getItem('kfl_checks') || 'null') || DEFAULT_CHECKS;
 
+const DEFAULT_CCTV_CHECKS = [
+  {id:'cctv_grooming',      label:'Grooming Standard followed',                    sub:'Whether Grooming Standard followed by the store or not'},
+  {id:'cctv_display',       label:'Item Display done properly',                    sub:'Whether Item Display is done properly or not'},
+  {id:'cctv_attendance',    label:'Employees attending customers',                 sub:'Whether Employees are attending customer or not'},
+  {id:'cctv_behaviour',     label:'Employee behaviour good on floor',              sub:'Whether Employees Behaviour is good in the Floor or not'},
+  {id:'cctv_att_reg',       label:'No issue in Attendance Regularization',         sub:'Whether issue found in Attendance Regularization'},
+  {id:'cctv_open_close',    label:'Store opening & closing as per process',        sub:'Whether Employees are opening and closing store as per Process or not'},
+  {id:'cctv_inward',        label:'Store Inward process followed',                 sub:'Whether Store followed Inward process as per the given instruction'},
+  {id:'cctv_sop',           label:'No SOP deviation found',                        sub:'Whether issue found in the SOP deviation'},
+  {id:'cctv_name_badge',    label:'Employees wearing Name badge',                  sub:'Whether Store Employees wore Name badge or not'},
+  {id:'cctv_printed_bill',  label:'Printed bill given to customer',                sub:'Whether store employee given printed bill to the customer or not'},
+  {id:'cctv_manual_bill',   label:'Manual billing approval taken',                 sub:'Whether store taken approval for Manual billing'},
+  {id:'cctv_camera',        label:'Camera not turned without approval',            sub:'Whether store employee turned the camera without approval from the audit'},
+  {id:'cctv_ecomm',         label:'Ecommerce process followed',                    sub:'Whether store are following Ecommerce process or not'},
+  {id:'cctv_redemption',    label:'No Point redemption issue',                     sub:'Point redemption Issue'},
+  {id:'cctv_sales_return',  label:'Sales Returns approval taken',                  sub:'Whether store taken approval for Sales Returns'},
+  {id:'cctv_stock_inward',  label:'Stock inward done on time',                     sub:'Whether stock inward done on time'},
+  {id:'cctv_discount',      label:'No wrong discount given to customer',           sub:'Whether store given wrong discount to customer or not'},
+  {id:'cctv_watched_full',  label:'Store watched full (not random)',               sub:'Store watched full or not — Full = No issue, Random = Issue found'},
+  {id:'cctv_weekly_count',  label:'Weekly counting process without deviation',     sub:'Whether weekly counting process has done without any deviation'},
+  {id:'cctv_mgr_present',   label:'Store manager present in store',                sub:'Whether store manager present in the store or not'},
+  {id:'cctv_bill_edit',     label:'Bill Edit process followed',                    sub:'Whether store has followed the Bill Edit process or not'},
+  {id:'cctv_briefing',      label:'Daily Briefing conducted',                      sub:'Whether daily wise Briefing Conducted or not'},
+];
+
+function getActiveChecks() {
+  return currentAuditType === 'cctv' ? DEFAULT_CCTV_CHECKS : CHECKS;
+}
+
 let LISTS = {
   auditor: ['Yallappa','Rammurthy','Manjunath','Ganesh','Chandan','Jeevan','Chandrakanth','Udhaya Kumar T'],
   cluster: ['Ajmal','Aveen','Kanagarathnam','Karthik','Mudassir','Sabari','Siva','Ravindra','Ambarish','Akash Mishra','Sathish G','Chandu Krishna','Jyothi Mishra'],
@@ -923,7 +961,10 @@ function setAuditType(type) {
   currentAuditType = type;
   document.getElementById('btn-stock').className    = type === 'stock'    ? 'active-stock' : '';
   document.getElementById('btn-surprise').className = type === 'surprise' ? 'active-surprise' : '';
-  document.getElementById('shrinkage-card').style.display = type === 'stock' ? '' : 'none';
+  document.getElementById('btn-cctv').className     = type === 'cctv'     ? 'active-cctv' : '';
+  document.getElementById('shrinkage-card').style.display  = type === 'stock' ? '' : 'none';
+  document.getElementById('cctv-extra-row').style.display  = type === 'cctv'  ? '' : 'none';
+  buildChecklist();
 }
 let quickModalKey = '';
 
@@ -967,8 +1008,9 @@ function populateAllSelects() {
 // CHECKLIST FORM
 // ══════════════════════════════════════════════════════
 function buildChecklist() {
+  const activeChecks = getActiveChecks();
   const body = document.getElementById('checklist-body');
-  body.innerHTML = CHECKS.map(c => `
+  body.innerHTML = activeChecks.map(c => `
     <div class="check-row" id="row-${c.id}">
       <div class="check-info">
         <div class="check-q">${c.label}</div>
@@ -985,9 +1027,9 @@ function buildChecklist() {
         <button onclick="setCheck('${c.id}','issue',this)">Issue found</button>
       </div>
     </div>`).join('');
-  CHECKS.forEach(c => { checkStates[c.id] = 'ok'; });
+  activeChecks.forEach(c => { checkStates[c.id] = 'ok'; });
   document.getElementById('edit-count').textContent = CHECKS.length;
-  document.getElementById('form-check-count').textContent = '('+CHECKS.length+' points)';
+  document.getElementById('form-check-count').textContent = '('+activeChecks.length+' points)';
 }
 
 function setCheck(id, val, btn) {
@@ -1176,12 +1218,14 @@ function submitAudit() {
   const date    = document.getElementById('f-date').value;
   const cluster = document.getElementById('f-cluster').value;
   if (!auditor||!outlet||!date||!cluster) { alert('Please fill Auditor, Outlet, Date, and Cluster Manager.'); return; }
-  const issues = CHECKS.filter(c=>checkStates[c.id]==='issue').map(c=>{const t=document.getElementById('it-'+c.id);return{label:c.label,note:t?t.value.trim():'',photos:photoStates[c.id]||[]};});
-  const answered = CHECKS.filter(c=>checkStates[c.id]).length;
-  const ok = CHECKS.filter(c=>checkStates[c.id]==='ok').length;
+  const activeChecks = getActiveChecks();
+  const issues = activeChecks.filter(c=>checkStates[c.id]==='issue').map(c=>{const t=document.getElementById('it-'+c.id);return{label:c.label,note:t?t.value.trim():'',photos:photoStates[c.id]||[]};});
+  const answered = activeChecks.filter(c=>checkStates[c.id]).length;
+  const ok = activeChecks.filter(c=>checkStates[c.id]==='ok').length;
   const score = answered ? Math.round((ok/answered)*100) : null;
   const isSurprise = currentAuditType === 'surprise';
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,spct:isSurprise?'':document.getElementById('f-spct').value,sval:isSurprise?'':document.getElementById('f-sval').value,sqty:isSurprise?'':document.getElementById('f-sqty').value,sale:isSurprise?'':document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const isCctv = currentAuditType === 'cctv';
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value,sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1196,7 +1240,7 @@ function submitAudit() {
 
 function resetForm(silent) {
   if (!silent&&!confirm('Clear all form fields?')) return;
-  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   for(const k in checkStates)delete checkStates[k];
   for(const k in photoStates)delete photoStates[k];
@@ -1298,7 +1342,7 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':'📦 Stock'}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':'📦 Stock'}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?DEFAULT_CCTV_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
 }
 
 function downloadPDF(idx) {
@@ -1311,7 +1355,8 @@ function downloadPDF(idx) {
   const spctNum = parseFloat(s.spct) || 0;
   const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
 
-  const checklistRows = CHECKS.map(c => {
+  const pdfChecks = (s.auditType||'stock') === 'cctv' ? DEFAULT_CCTV_CHECKS : CHECKS;
+  const checklistRows = pdfChecks.map(c => {
     const issue = s.issues.find(i => i.label === c.label);
     if (issue) {
       return `<tr style="background:#FCEBEB;">
@@ -1356,7 +1401,7 @@ function downloadPDF(idx) {
   </style></head><body>
   <div class="header">
     <div>
-      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
+      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':(s.auditType||'stock')==='cctv'?'CCTV SURVEILLANCE AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
       <div class="outlet">${s.outlet}</div>
       <div class="meta">Auditor: <strong>${s.auditor}</strong> &nbsp;|&nbsp; Date: <strong>${s.date}</strong> &nbsp;|&nbsp; Cluster: <strong>${s.cluster}</strong>${s.area ? ' &nbsp;|&nbsp; Area: <strong>'+s.area+'</strong>' : ''}</div>
       <div class="meta" style="margin-top:2px;">Quarter: <strong>${s.qtr||'—'}</strong> &nbsp;|&nbsp; Month: <strong>${s.month||'—'}</strong></div>
@@ -1364,6 +1409,17 @@ function downloadPDF(idx) {
     <div style="text-align:right;font-size:11px;color:#aaa;">${s.ts||''}</div>
   </div>
 
+  ${(s.auditType||'stock')==='cctv'?`
+  <div class="metrics">
+    <div class="metric-box" style="background:#F3E8FF;border-color:#D8B4FE;">
+      <div class="lbl">Audit Type</div>
+      <div class="val" style="color:#6B21A8;font-size:16px;">📹 CCTV Surveillance</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Watched Date</div>
+      <div class="val" style="color:#1A1A18;font-size:16px;">${s.watchedDate||'—'}</div>
+    </div>
+  </div>`:`
   <div class="metrics">
     <div class="metric-box" style="background:${spctNum<0?'#FCEBEB':spctNum>0?'#FAEEDA':'#EAF3DE'};border-color:${spctNum<0?'#F7C1C1':spctNum>0?'#FAC775':'#C0DD97'};">
       <div class="lbl">Shrinkage %</div>
@@ -1381,13 +1437,13 @@ function downloadPDF(idx) {
       <div class="lbl">Store Sale (₹)</div>
       <div class="val" style="color:#1A1A18;">${s.sale||'—'}</div>
     </div>
-  </div>
+  </div>`}
 
   <div class="score-box">
     <div class="score-num">${sc !== null ? sc + '%' : '—'}</div>
     <div class="score-detail">
       <div style="font-size:15px;font-weight:600;color:${scColor};">${sc===null?'Not scored':sc>=80?'Good Standing':sc>=60?'Needs Attention':'Critical'}</div>
-      <div style="color:#888;margin-top:2px;">${s.answered} of ${CHECKS.length} points answered &nbsp;|&nbsp; ${s.issues.length} issue${s.issues.length!==1?'s':''} found</div>
+      <div style="color:#888;margin-top:2px;">${s.answered} of ${pdfChecks.length} points answered &nbsp;|&nbsp; ${s.issues.length} issue${s.issues.length!==1?'s':''} found</div>
     </div>
   </div>
 
