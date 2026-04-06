@@ -535,6 +535,13 @@
         </div>
         <span id="check-count-lbl" style="font-size:12px;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;"></span>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Editing:</span>
+        <div class="audit-type-toggle">
+          <button id="editor-btn-stock" class="active-stock" onclick="setEditorMode('stock')">📦 Stock / Surprise</button>
+          <button id="editor-btn-cctv" onclick="setEditorMode('cctv')">📹 CCTV Audit</button>
+        </div>
+      </div>
       <div class="info-pill">ⓘ Changes apply to all new audits. Past submissions are not affected.</div>
       <div id="editor-list"></div>
       <button class="add-row-btn" onclick="openCheckModal(-1)"><span style="font-size:20px;font-weight:300;">+</span> Add new checklist item</button>
@@ -941,8 +948,10 @@ const DEFAULT_CCTV_CHECKS = [
   {id:'cctv_briefing',      label:'Daily Briefing conducted',                      sub:'Whether daily wise Briefing Conducted or not'},
 ];
 
+let CCTV_CHECKS = JSON.parse(localStorage.getItem('kfl_cctv_checks') || 'null') || DEFAULT_CCTV_CHECKS;
+
 function getActiveChecks() {
-  return currentAuditType === 'cctv' ? DEFAULT_CCTV_CHECKS : CHECKS;
+  return currentAuditType === 'cctv' ? CCTV_CHECKS : CHECKS;
 }
 
 let LISTS = {
@@ -1082,9 +1091,21 @@ function openPhotoViewer(id, idx) {
 // ══════════════════════════════════════════════════════
 // CHECKLIST EDITOR
 // ══════════════════════════════════════════════════════
+let editorMode = 'stock';
+
+function getEditorChecks() { return editorMode === 'cctv' ? CCTV_CHECKS : CHECKS; }
+
+function setEditorMode(mode) {
+  editorMode = mode;
+  document.getElementById('editor-btn-stock').className = mode === 'stock' ? 'active-stock' : '';
+  document.getElementById('editor-btn-cctv').className  = mode === 'cctv'  ? 'active-cctv'  : '';
+  renderEditor();
+}
+
 function renderEditor() {
+  const checks = getEditorChecks();
   const list = document.getElementById('editor-list');
-  list.innerHTML = CHECKS.map((c,i)=>`
+  list.innerHTML = checks.map((c,i)=>`
     <div class="editor-row">
       <div class="row-num">${String(i+1).padStart(2,'0')}</div>
       <div class="row-content">
@@ -1096,20 +1117,25 @@ function renderEditor() {
         <button class="btn-icon del" title="Delete" onclick="deleteCheck(${i})">&#10005;</button>
       </div>
     </div>`).join('');
-  document.getElementById('check-count-lbl').textContent = CHECKS.length+' checks';
+  document.getElementById('check-count-lbl').textContent = checks.length+' checks';
   document.getElementById('edit-count').textContent = CHECKS.length;
 }
 
 function deleteCheck(idx) {
-  if (!confirm('Delete "'+CHECKS[idx].label+'"?')) return;
-  CHECKS.splice(idx,1); renderEditor();
+  const checks = getEditorChecks();
+  if (!confirm('Delete "'+checks[idx].label+'"?')) return;
+  checks.splice(idx,1); renderEditor();
 }
 
 function saveChecklist() {
-  localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
-  if (SHEETS_URL) {
-    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveChecklist', checks:CHECKS})})
-      .catch(()=>{});
+  if (editorMode === 'cctv') {
+    localStorage.setItem('kfl_cctv_checks', JSON.stringify(CCTV_CHECKS));
+  } else {
+    localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
+    if (SHEETS_URL) {
+      fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveChecklist', checks:CHECKS})})
+        .catch(()=>{});
+    }
   }
   buildChecklist();
   showToast('editor-toast');
@@ -1117,10 +1143,11 @@ function saveChecklist() {
 }
 
 function openCheckModal(idx) {
+  const checks = getEditorChecks();
   checkModalIdx = idx;
   document.getElementById('check-modal-title').textContent = idx>=0?'Edit Checklist Item':'Add New Checklist Item';
-  document.getElementById('m-label').value = idx>=0?CHECKS[idx].label:'';
-  document.getElementById('m-sub').value   = idx>=0?CHECKS[idx].sub:'';
+  document.getElementById('m-label').value = idx>=0?checks[idx].label:'';
+  document.getElementById('m-sub').value   = idx>=0?checks[idx].sub:'';
   document.getElementById('check-modal').classList.add('open');
   setTimeout(()=>document.getElementById('m-label').focus(),80);
 }
@@ -1128,11 +1155,12 @@ function openCheckModal(idx) {
 function closeCheckModal() { document.getElementById('check-modal').classList.remove('open'); }
 
 function saveCheckModal() {
+  const checks = getEditorChecks();
   const label = document.getElementById('m-label').value.trim();
   const sub   = document.getElementById('m-sub').value.trim();
   if (!label) { document.getElementById('m-label').focus(); return; }
-  if (checkModalIdx>=0) { CHECKS[checkModalIdx].label=label; CHECKS[checkModalIdx].sub=sub; }
-  else CHECKS.push({id:'c_'+Date.now(), label, sub});
+  if (checkModalIdx>=0) { checks[checkModalIdx].label=label; checks[checkModalIdx].sub=sub; }
+  else checks.push({id:'c_'+Date.now(), label, sub});
   closeCheckModal(); renderEditor();
 }
 
@@ -1343,7 +1371,7 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':'📦 Stock'}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?DEFAULT_CCTV_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':'📦 Stock'}</span></td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${i})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${i})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${i})">✕</button></td></tr>`;}).join('')}</tbody>`;
 }
 
 function downloadPDF(idx) {
@@ -1356,7 +1384,7 @@ function downloadPDF(idx) {
   const spctNum = parseFloat(s.spct) || 0;
   const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
 
-  const pdfChecks = (s.auditType||'stock') === 'cctv' ? DEFAULT_CCTV_CHECKS : CHECKS;
+  const pdfChecks = (s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS;
   const checklistRows = pdfChecks.map(c => {
     const issue = s.issues.find(i => i.label === c.label);
     if (issue) {
