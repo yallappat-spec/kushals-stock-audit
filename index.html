@@ -760,8 +760,12 @@
   if (d._test) { return ok(); }
   if (d.action === 'saveChecklist') {
     var cfg = ss.getSheetByName('_config') || ss.insertSheet('_config');
-    cfg.clearContents();
     cfg.getRange(1,1).setValue(JSON.stringify(d.checks));
+    return ok();
+  }
+  if (d.action === 'saveLists') {
+    var cfg = ss.getSheetByName('_config') || ss.insertSheet('_config');
+    cfg.getRange(2,1).setValue(JSON.stringify(d.lists));
     return ok();
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
@@ -806,6 +810,18 @@ function doGet(e) {
       }
     }
     return ContentService.createTextOutput(JSON.stringify({checks:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (e.parameter.type === 'lists') {
+    var cfg = ss.getSheetByName('_config');
+    if (cfg) {
+      var val = cfg.getRange(2,1).getValue();
+      if (val) {
+        return ContentService.createTextOutput(JSON.stringify({lists:JSON.parse(val)}))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({lists:{}}))
       .setMimeType(ContentService.MimeType.JSON);
   }
   var sheet = ss.getActiveSheet();
@@ -968,7 +984,12 @@ const LISTS = {
   area:    (_savedLists && _savedLists.area)    || DEFAULT_LISTS.area,
   outlet:  (_savedLists && _savedLists.outlet)  || DEFAULT_LISTS.outlet,
 };
-function saveLists() { localStorage.setItem('kfl_lists', JSON.stringify(LISTS)); }
+function saveLists() {
+  localStorage.setItem('kfl_lists', JSON.stringify(LISTS));
+  if (SHEETS_URL) {
+    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveLists', lists:LISTS})}).catch(()=>{});
+  }
+}
 
 const checkStates = {};
 const photoStates = {}; // {checkId: [base64, ...]}
@@ -1926,11 +1947,28 @@ function fetchChecklistFromSheets() {
     .catch(()=>{});
 }
 
+function fetchListsFromSheets() {
+  if (!SHEETS_URL) return;
+  fetch(SHEETS_URL + '?type=lists', {cache:'no-store'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.lists) {
+        ['auditor','cluster','area','outlet'].forEach(k => {
+          if (Array.isArray(data.lists[k]) && data.lists[k].length > 0) LISTS[k] = data.lists[k];
+        });
+        localStorage.setItem('kfl_lists', JSON.stringify(LISTS));
+        populateAllSelects();
+      }
+    })
+    .catch(()=>{});
+}
+
 buildChecklist();
 populateAllSelects();
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 updateSheetsIndicator();
 fetchChecklistFromSheets();
+fetchListsFromSheets();
 // restore submission count badge from localStorage
 (function(){
   const cnt = submissions.length;
