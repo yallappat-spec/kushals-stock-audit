@@ -954,12 +954,16 @@ function getActiveChecks() {
   return currentAuditType === 'cctv' ? CCTV_CHECKS : CHECKS;
 }
 
-let LISTS = {
+const DEFAULT_LISTS = {
   auditor: ['Yallappa','Rammurthy','Manjunath','Ganesh','Chandan','Jeevan','Chandrakanth','Udhaya Kumar T'],
   cluster: ['Ajmal','Aveen','Kanagarathnam','Karthik','Mudassir','Sabari','Siva','Ravindra','Ambarish','Akash Mishra','Sathish G','Chandu Krishna','Jyothi Mishra'],
   area:    ['Manirathnam','Rahul','Akash Mishra','Raghav','Sathish','Venkata Chary'],
   outlet:  ['AHM - ALPHA MALL','ATP - COURT ROAD','BGM - AMBEDKAR ROAD','BGM - MAHATMA PHULE ROAD','BIM - JP ROAD','BLR - 4TH BLOCK JAYANAGAR','BLR - ARS COMPLEX MALLESHWARAM','BLR - BASAWESHWAR NAGAR','BLR - BEL ROAD','BLR - COMMERCIAL STREET','BLR - DVG ROAD','BLR - FORUM SHANTINIKETAN MALL','BLR - FORUM SOUTH BANGALORE','BLR - GARUDA MALL','BLR - HENNUR ROAD','BLR - HSR LAYOUT','BLR - INDIRANAGAR','BLR - JAYNAGAR','BLR - K R PURAM','BLR - KAMMANAHALLI','BLR - KATHRIGUPPE','BLR - MALL OF ASIA','BLR - MALLESWARAM','BLR - MANTRI MALL','BLR - NEXUS KORAMANGALA MALL','BLR - ORION MALL','BLR - PHOENIX MALL WHITEFIELD','BLR - RMZ MALL','BLR - ROYAL MEENAKSHI MALL','BLR - RR NAGAR','BLR - SAHAKARNAGAR','BLR - SARJAPUR MAIN ROAD','BLR - VEGA CITY MALL','BLR - WHITEFIELD MAIN ROAD','BPL - DB CITY MALL','CBT - BROOKEFIELD MALL','CBT - RS PURAM','CDR - ELANTE MALL','CHN - ADYAR','CHN - EXPRESS AVENUE MALL','CHN - MARINA MALL','CHN - MOGAPPAIR WEST ROAD','CHN - NEXUS VIJAYA MALL','CHN - PAPER MILL ROAD','CHN - PHOENIX MALL VELACHERY','CHN - SELAIYUR','CHN - T NAGAR','CHN - THORAIPAKKAM','CHN - VELACHERY BYPASS ROAD','CHN - VR MALL','DEL - KAMLA NAGAR','GTR - LAXMIPURAM','GUR - MGF METRO POLITIAN MALL','GWT - G S ROAD','HBL - GOKUL ROAD','HBL - KOPPIKAR ROAD','HOS - AVALAPALLI','HSP - VIJAYANAGAR COLLEGE ROAD','HYD - AS RAO NAGAR','HYD - ATTAPUR','HYD - DSL VIRTUE MALL','HYD - INORBIT MALL','HYD - JUBILEE HILLS','HYD - KOMPALLI','HYD - KONDAPUR','HYD - KOTHAPET','HYD - KUKATPALLY','HYD - LAKESHORE MALL','HYD - LT MALL','HYD - NALLAGANDLA','HYD - NEXUS MALL','HYD - PANJAGUTTA','HYD - PARKLANE','HYD - SARATH CITY MALL','HYD - VANATSALIPURAM','IDR - ORBIT MALL','IDR - PHEONIX CITADEL MALL','IDR - SCHEME NO 140','IDR - SNEH NAGAR','KCH - FORUM MALL','KCH - LULU MALL','KCH - MG ROAD','KHM - WYRA ROAD','KKN - RAMA KRISHNARAO PET','KPR - RAJARAMPURI','KRL - BHAGYA NAGAR','KRM - AMBEDKAR ROAD','LUK - PHOENIX PALASSIO MALL','MDR - ANNA NAGAR','MGL - BALMATTA','MGL - CITY CENTER MALL','MGL - NEXUS FIZA MALL','MUM - PHOENIX MARKET CITY','MUM - R CITY MALL','MYS - DEVRAJ URS ROAD','MYS - MALL OF MYSORE','MYS - NEXUS MALL','NLR - MINI BYPASS ROAD','NZM - PRAGATHI NAGAR','ONG - M M ROAD','PUN - KOREGAON PARK','PUN - MALL OF MILLEENNIUM','PUN - PHOENIX MALL VIMAN NAGAR','PUN - PIMPRI CHINCHWAD','PUN - SOLITAIRE BUSINESS HUB','PUN - WESTEND MALL','RJM - DANVAIPETA','SLM - SARADA COLLEGE ROAD','TIR - PALLADAM MAIN ROAD','TPL - KARUR BYPASS ROAD','TRP - AIR ROAD','TRV - LULU MALL','UDP - MAIN MARKET','VIG - MADHURWADA','VIG - SIRIPURAM','VJN - SRINIVASA NAGAR','VJW - GAYATHRI NAGAR','VJW - M G ROAD','WRL - NAIM NAGAR']
 };
+
+const savedLists = JSON.parse(localStorage.getItem('kfl_lists') || 'null');
+const LISTS = savedLists ? {...DEFAULT_LISTS, ...savedLists} : {...DEFAULT_LISTS};
+function saveLists() { localStorage.setItem('kfl_lists', JSON.stringify(LISTS)); }
 
 const checkStates = {};
 const photoStates = {}; // {checkId: [base64, ...]}
@@ -1193,13 +1197,17 @@ function addListItem(key) {
   if (LISTS[key].includes(val)) { alert('"'+val+'" already exists in this list.'); return; }
   LISTS[key].push(val);
   input.value = '';
+  saveLists();
   renderTagList(key);
+  populateAllSelects();
 }
 
 function removeListItem(key, idx) {
   if (!confirm('Remove "'+LISTS[key][idx]+'" from the list?')) return;
   LISTS[key].splice(idx,1);
+  saveLists();
   renderTagList(key);
+  populateAllSelects();
 }
 
 function applyLists() {
