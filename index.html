@@ -1619,7 +1619,7 @@ function downloadCSV() {
   if (!rows.length) { alert('No data to export.'); return; }
   const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
 
-  const hasStockRows = rows.some(s => (s.auditType||'stock') !== 'cctv');
+  const hasStockRows = rows.some(s => (s.auditType||'stock') === 'stock');
   const hasCctvRows  = rows.some(s => (s.auditType||'stock') === 'cctv');
 
   const baseHeaders = ['Audit Type','Date','Outlet','Auditor','Cluster','Area','Quarter','Month'];
@@ -1646,7 +1646,8 @@ function downloadCSV() {
 
     const base = [escape(s.auditType||'stock'), s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area), s.qtr, s.month];
     if (hasCctvRows)  base.push(escape(s.watchedDate||''));
-    if (hasStockRows) base.push(isCctvRow?'':s.spct, isCctvRow?'':s.sval, isCctvRow?'':s.sqty, isCctvRow?'':s.sale);
+    const noShrinkage = (s.auditType||'stock') !== 'stock';
+    if (hasStockRows) base.push(noShrinkage?'':s.spct, noShrinkage?'':s.sval, noShrinkage?'':s.sqty, noShrinkage?'':s.sale);
     base.push(s.score, s.answered);
 
     const checks = allCheckLabels.map(label => {
