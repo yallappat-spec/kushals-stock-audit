@@ -1018,7 +1018,7 @@ function goTab(tab, btn) {
   document.getElementById(tab+'-panel').classList.add('active');
   if (tab==='summary') renderSummary();
   if (tab==='editor')  renderEditor();
-  if (tab==='lists')   renderListsPanel();
+  if (tab==='lists')   { renderListsPanel(); fetchListsFromSheets(); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1949,15 +1949,16 @@ function fetchChecklistFromSheets() {
 
 function fetchListsFromSheets() {
   if (!SHEETS_URL) return;
-  fetch(SHEETS_URL + '?type=lists', {cache:'no-store'})
+  fetch(SHEETS_URL + '?type=lists&_t=' + Date.now(), {cache:'no-store'})
     .then(r => r.json())
     .then(data => {
-      if (data.lists) {
+      if (data.lists && Object.keys(data.lists).length > 0) {
         ['auditor','cluster','area','outlet'].forEach(k => {
           if (Array.isArray(data.lists[k]) && data.lists[k].length > 0) LISTS[k] = data.lists[k];
         });
         localStorage.setItem('kfl_lists', JSON.stringify(LISTS));
         populateAllSelects();
+        if (document.getElementById('lists-panel').classList.contains('active')) renderListsPanel();
       }
     })
     .catch(()=>{});
