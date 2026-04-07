@@ -1619,8 +1619,13 @@ function downloadCSV() {
   if (!rows.length) { alert('No data to export.'); return; }
   const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
 
-  const baseHeaders = ['Audit Type','Watched Date','Date','Outlet','Auditor','Cluster','Area','Quarter','Month',
-    'Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale','Score %','Answered'];
+  const hasStockRows = rows.some(s => (s.auditType||'stock') !== 'cctv');
+  const hasCctvRows  = rows.some(s => (s.auditType||'stock') === 'cctv');
+
+  const baseHeaders = ['Audit Type','Date','Outlet','Auditor','Cluster','Area','Quarter','Month'];
+  if (hasCctvRows)  baseHeaders.push('Watched Date');
+  if (hasStockRows) baseHeaders.push('Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale');
+  baseHeaders.push('Score %','Answered');
 
   // Collect all unique checklist labels across all rows (preserving order: stock first, then cctv)
   const seenLabels = new Set();
@@ -1633,16 +1638,17 @@ function downloadCSV() {
   const headers = [...baseHeaders, ...allCheckLabels].map(escape).join(',');
 
   const csvRows = [headers, ...rows.map(s => {
-    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
+    const isCctvRow = (s.auditType||'stock') === 'cctv';
+    const rowChecks = s.checklistSnapshot || (isCctvRow ? CCTV_CHECKS : CHECKS);
     const rowLabels = new Set(rowChecks.map(c => c.label));
     const issueMap = {};
     s.issues.forEach(i => { issueMap[i.label] = i.note || ''; });
 
-    const base = [
-      escape(s.auditType||'stock'), escape(s.watchedDate||''),
-      s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area),
-      s.qtr, s.month, s.spct, s.sval, s.sqty, s.sale, s.score, s.answered
-    ];
+    const base = [escape(s.auditType||'stock'), s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area), s.qtr, s.month];
+    if (hasCctvRows)  base.push(escape(s.watchedDate||''));
+    if (hasStockRows) base.push(isCctvRow?'':s.spct, isCctvRow?'':s.sval, isCctvRow?'':s.sqty, isCctvRow?'':s.sale);
+    base.push(s.score, s.answered);
+
     const checks = allCheckLabels.map(label => {
       if (!rowLabels.has(label)) return escape('N/A');
       if (label in issueMap) return escape('Issue Found' + (issueMap[label] ? ': ' + issueMap[label] : ''));
