@@ -1254,7 +1254,8 @@ function submitAudit() {
   const score = answered ? Math.round((ok/answered)*100) : null;
   const isSurprise = currentAuditType === 'surprise';
   const isCctv = currentAuditType === 'cctv';
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value,sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value,sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1384,7 +1385,7 @@ function downloadPDF(idx) {
   const spctNum = parseFloat(s.spct) || 0;
   const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
 
-  const pdfChecks = (s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS;
+  const pdfChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
   const checklistRows = pdfChecks.map(c => {
     const issue = s.issues.find(i => i.label === c.label);
     if (issue) {
