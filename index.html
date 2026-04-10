@@ -1613,6 +1613,7 @@ function getShrinkageRows() {
   const month  = document.getElementById('sh-month')?.value || '';
   return displaySubs.filter(s =>
     (s.auditType||'stock') === 'stock' &&
+    (s.spct || s.sval || s.sqty || s.sale) &&
     (!search || (s.outlet||'').toLowerCase().includes(search)) &&
     (!qtr    || s.qtr === qtr) &&
     (!month  || s.month === month)
