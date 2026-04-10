@@ -1065,10 +1065,10 @@ function buildChecklist() {
         <div class="check-sub">${c.sub}</div>
         <div class="issue-wrap" id="ib-${c.id}">
           <input type="text" placeholder="Describe the issue found..." id="it-${c.id}" />
-          <input type="file" accept="image/*" capture="environment" id="photo-input-${c.id}" style="display:none" onchange="handlePhotoUpload('${c.id}',this)">
-          <button type="button" class="btn-photo" onclick="document.getElementById('photo-input-${c.id}').click()">📷 Attach Photo</button>
-          <div class="photo-preview" id="photo-preview-${c.id}"></div>
         </div>
+        <input type="file" accept="image/*" capture="environment" id="photo-input-${c.id}" style="display:none" onchange="handlePhotoUpload('${c.id}',this)">
+        <button type="button" class="btn-photo" onclick="document.getElementById('photo-input-${c.id}').click()">📷 Attach Photo</button>
+        <div class="photo-preview" id="photo-preview-${c.id}"></div>
       </div>
       <div class="tog">
         <button class="ok" onclick="setCheck('${c.id}','ok',this)">No issue</button>
