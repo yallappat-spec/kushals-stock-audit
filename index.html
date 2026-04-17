@@ -288,7 +288,7 @@
     <div class="card" id="shrinkage-card">
       <div class="card-title">Shrinkage &amp; Sales Data</div>
       <div class="grid3">
-        <div class="field"><label>Shrinkage % <span class="req">*</span></label><input type="text" id="f-spct" placeholder="e.g. 0.12"></div>
+        <div class="field"><label>Shrinkage % <span class="req">*</span></label><input type="text" id="f-spct" placeholder="e.g. -0.03 (no % sign)"></div>
         <div class="field"><label>Shrinkage Value (₹)</label><input type="text" id="f-sval" placeholder="Amount in ₹"></div>
         <div class="field"><label>Shrinkage Quantity <span class="req">*</span></label><input type="text" id="f-sqty" placeholder="No. of pieces"></div>
       </div>
@@ -906,7 +906,7 @@ function doGet(e) {
       <div class="field"><label>Quarter &amp; Month</label><div style="display:flex;gap:7px;"><select id="e-qtr" style="flex:1;"><option value="">Qtr</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select><select id="e-month" style="flex:2;"><option value="">Month</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div></div>
     </div>
     <div class="grid3" style="margin-top:4px;">
-      <div class="field"><label>Shrinkage %</label><input type="text" id="e-spct" placeholder="e.g. 0.12"></div>
+      <div class="field"><label>Shrinkage %</label><input type="text" id="e-spct" placeholder="e.g. -0.03 (no % sign)"></div>
       <div class="field"><label>Shrinkage Value (₹)</label><input type="text" id="e-sval" placeholder="Amount"></div>
       <div class="field"><label>Shrinkage Qty</label><input type="text" id="e-sqty" placeholder="Pieces"></div>
     </div>
@@ -1316,7 +1316,7 @@ function submitAudit() {
   const isSurprise = currentAuditType === 'surprise';
   const isCctv = currentAuditType === 'cctv';
   const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value,sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1962,7 +1962,7 @@ function saveEdit() {
     area:  document.getElementById('e-area').value,
     qtr:   document.getElementById('e-qtr').value,
     month: document.getElementById('e-month').value,
-    spct:  document.getElementById('e-spct').value,
+    spct:  document.getElementById('e-spct').value.replace(/%/g,'').trim(),
     sval:  document.getElementById('e-sval').value,
     sqty:  document.getElementById('e-sqty').value,
     sale:  document.getElementById('e-sale').value,
