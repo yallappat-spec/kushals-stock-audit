@@ -1369,17 +1369,22 @@ function renderAllMetrics() {
 
 function renderGapMetrics() {}
 
+function parseNum(v) { return parseFloat(String(v||'').replace(/,/g,'')) || 0; }
+
+function fmtINR(v) { return v ? '₹' + Math.abs(v).toLocaleString('en-IN') : '—'; }
+
 function renderShrinkageMetrics() {
   const rows = getShrinkageRows();
-  const totalSval = rows.reduce((a,s) => a + (parseFloat(s.sval)||0), 0);
-  const totalSale = rows.reduce((a,s) => a + (parseFloat(s.sale)||0), 0);
+  const totalSval = rows.reduce((a,s) => a + parseNum(s.sval), 0);
+  const totalSale = rows.reduce((a,s) => a + parseNum(s.sale), 0);
   const shrinkPct = totalSale ? ((totalSval / totalSale) * 100).toFixed(4) : null;
   const pctColor = shrinkPct !== null && parseFloat(shrinkPct) > 0 ? 'var(--red)' : 'var(--green)';
-  const valStr = totalSval ? '₹' + Math.abs(totalSval).toLocaleString('en-IN') : '—';
+  const valFontSize = Math.abs(totalSval) > 9999999 ? '20px' : '28px';
   document.getElementById('metric-row').innerHTML =
     `<div class="metric"><div class="metric-val">${rows.length}</div><div class="metric-lbl">Stores Audited</div></div>` +
     `<div class="metric"><div class="metric-val" style="color:${pctColor};">${shrinkPct !== null ? shrinkPct+'%' : '—'}</div><div class="metric-lbl">Shrinkage %</div></div>` +
-    `<div class="metric"><div class="metric-val" style="color:var(--red);font-size:${Math.abs(totalSval)>9999999?'20px':'28px'};">${valStr}</div><div class="metric-lbl">Shrinkage Value</div></div>`;
+    `<div class="metric"><div class="metric-val" style="color:var(--red);font-size:${valFontSize};">${fmtINR(totalSval)}</div><div class="metric-lbl">Shrinkage Value</div></div>` +
+    `<div class="metric"><div class="metric-val" style="font-size:${totalSale>9999999?'20px':'28px'};">${fmtINR(totalSale)}</div><div class="metric-lbl">Overall Sale</div></div>`;
 }
 
 async function renderSummary() {
