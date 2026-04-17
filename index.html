@@ -1374,13 +1374,11 @@ function renderShrinkageMetrics() {
   const totalSval = rows.reduce((a,s) => a + (parseFloat(s.sval)||0), 0);
   const totalSale = rows.reduce((a,s) => a + (parseFloat(s.sale)||0), 0);
   const shrinkPct = totalSale ? ((totalSval / totalSale) * 100).toFixed(4) : null;
-  const clean = rows.filter(s => !s.issues.length).length;
   const pctColor = shrinkPct !== null && parseFloat(shrinkPct) > 0 ? 'var(--red)' : 'var(--green)';
   const valStr = totalSval ? '₹' + Math.abs(totalSval).toLocaleString('en-IN') : '—';
   document.getElementById('metric-row').innerHTML =
     `<div class="metric"><div class="metric-val">${rows.length}</div><div class="metric-lbl">Stores Audited</div></div>` +
     `<div class="metric"><div class="metric-val" style="color:${pctColor};">${shrinkPct !== null ? shrinkPct+'%' : '—'}</div><div class="metric-lbl">Shrinkage %</div></div>` +
-    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
     `<div class="metric"><div class="metric-val" style="color:var(--red);font-size:${Math.abs(totalSval)>9999999?'20px':'28px'};">${valStr}</div><div class="metric-lbl">Shrinkage Value</div></div>`;
 }
 
