@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)file:///C:/Users/Kushals/Downloads/Kushals_Stock_Audit_2025_3.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kushal Audit Checklist</title>
+<link href="./Stock Audit 2025-26 — Kushals Fashion Jewellery_files/css2" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F7F6F3; --surface:#FFFFFF;
+    --border:rgba(0,0,0,0.10); --border-strong:rgba(0,0,0,0.18);
+    --text:#1A1A18; --text-muted:#6B6B66; --text-faint:#A5A49F;
+    --accent:#2C2C2A; --accent-text:#E8E6DF;
+    --green-bg:#EAF3DE; --green:#3B6D11; --green-border:#C0DD97;
+    --amber-bg:#FAEEDA; --amber:#854F0B; --amber-border:#FAC775;
+    --red-bg:#FCEBEB; --red:#A32D2D; --red-border:#F7C1C1;
+    --blue-bg:#E6F1FB; --blue:#185FA5; --blue-border:#B5D4F4;
+    --radius:10px; --radius-sm:7px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;}
+
+  /* TOPBAR */
+  .topbar{background:var(--accent);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .topbar-left{display:flex;align-items:center;gap:14px;}
+  .logo-box{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;letter-spacing:0.5px;color:#E8E6DF;font-family:'DM Mono',monospace;}
+  .topbar h1{font-size:15px;font-weight:600;color:#F0EDE6;}
+  .topbar p{font-size:12px;color:rgba(255,255,255,0.5);margin-top:1px;}
+  .topbar-badge{background:rgba(255,255,255,0.12);border-radius:20px;padding:4px 14px;font-size:12px;color:rgba(255,255,255,0.7);font-family:'DM Mono',monospace;}
+  .btn-sheets{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:4px 14px;font-size:12px;color:rgba(255,255,255,0.7);font-family:'DM Mono',monospace;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.15s;}
+  .btn-sheets:hover{background:rgba(255,255,255,0.18);}
+  .btn-sheets.synced{color:#8cdb6a;}
+  .btn-sheets.error{color:#f59090;}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3);flex-shrink:0;}
+  .sync-dot.ok{background:#8cdb6a;}
+  .sync-dot.err{background:#f59090;}
+  .sync-dot.spin{background:#f0c040;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  /* SHEETS MODAL */
+  .sheets-modal{max-width:520px;max-height:90vh;overflow-y:auto;}
+  .sheets-modal p{font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;}
+  .sheets-modal code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 7px;}
+  .sheets-modal .step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+  .sheets-modal .step-num{background:var(--accent);color:var(--accent-text);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .sheets-modal .step-text{font-size:13px;color:var(--text-muted);line-height:1.5;}
+  .script-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text-muted);white-space:pre;overflow-x:auto;margin:10px 0;line-height:1.6;}
+
+  /* TABS */
+  .tabs-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;position:sticky;top:65px;z-index:99;}
+  .tab{padding:14px 20px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:'DM Sans',sans-serif;transition:color 0.15s;white-space:nowrap;}
+  .tab:hover{color:var(--text);}
+  .tab.active{color:var(--text);border-bottom-color:var(--accent);}
+  .tab-count{background:#F0EDE6;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:5px;font-family:'DM Mono',monospace;color:var(--text-muted);}
+
+  .main{max-width:920px;margin:0 auto;padding:28px 24px 60px;}
+  .panel{display:none;} .panel.active{display:block;}
+
+  /* TOASTS */
+  .toast{border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;display:none;margin-bottom:18px;font-weight:500;}
+  .toast-green{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);}
+  .toast-blue{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;}
+  .card-title{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:16px;font-family:'DM Mono',monospace;}
+  .card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .card-hdr .card-title{margin-bottom:0;}
+
+  /* FORMS */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+  @media(max-width:620px){.grid2,.grid3{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text-muted);}
+  .req{color:var(--red);}
+  input,select,textarea{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--bg);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:9px 12px;width:100%;transition:border-color 0.15s,box-shadow 0.15s;-webkit-appearance:none;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,44,42,0.08);}
+  textarea{resize:vertical;min-height:60px;}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B66' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+
+  /* DROPDOWN WITH ADD BUTTON */
+  .select-wrap{display:flex;gap:6px;align-items:stretch;}
+  .select-wrap select{flex:1;}
+  .btn-add-opt{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);border-radius:var(--radius-sm);padding:0 14px;font-size:18px;font-weight:400;cursor:pointer;flex-shrink:0;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .btn-add-opt:hover{opacity:0.8;}
+
+  /* CHECKLIST ROWS */
+  .check-row{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .check-row:last-child{border-bottom:none;}
+  .check-info{flex:1;}
+  .check-q{font-size:14px;font-weight:500;color:var(--text);}
+  .check-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .issue-wrap{display:none;margin-top:9px;}
+  .issue-wrap input{font-size:13px;background:var(--red-bg);border-color:var(--red-border);}
+  .btn-photo{margin-top:7px;background:var(--bg);border:1px dashed var(--border-strong);border-radius:var(--radius-sm);padding:5px 12px;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:5px;}
+  .btn-photo:hover{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue);}
+  .photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px;}
+  .photo-preview-item{position:relative;display:inline-block;}
+  .photo-preview-item img{height:64px;width:auto;border-radius:6px;border:1px solid var(--border);object-fit:cover;cursor:pointer;}
+  .photo-remove{position:absolute;top:-5px;right:-5px;background:var(--red);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+  .tog{display:flex;border:1px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0;}
+  .tog button{padding:6px 15px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;white-space:nowrap;border-right:1px solid var(--border);}
+  .tog button:last-child{border-right:none;}
+  .tog button:hover{background:var(--bg);}
+  .tog button.ok{background:var(--green-bg);color:var(--green);}
+  .tog button.issue{background:var(--red-bg);color:var(--red);}
+
+  /* AUDIT TYPE TOGGLE */
+  .audit-type-toggle{display:flex;gap:0;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);overflow:hidden;width:fit-content;}
+  .audit-type-toggle button{padding:8px 22px;font-size:13px;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;transition:background 0.15s,color 0.15s;border-right:1px solid var(--border);}
+  .audit-type-toggle button:last-child{border-right:none;}
+  .audit-type-toggle button.active-stock{background:var(--accent);color:var(--accent-text);}
+  .audit-type-toggle button.active-surprise{background:#185FA5;color:#fff;}
+  .audit-type-toggle button.active-cctv{background:#6B21A8;color:#fff;}
+
+  /* BUTTONS */
+  .submit-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
+  .btn-primary{background:var(--accent);color:var(--accent-text);border:none;padding:11px 28px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s;}
+  .btn-primary:hover{opacity:0.85;}
+  .btn-sec{background:transparent;border:1px solid var(--border-strong);padding:11px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;}
+  .btn-sec:hover{background:var(--bg);}
+  .btn-blue{background:var(--blue-bg);border:1px solid var(--blue-border);color:var(--blue);padding:7px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+  .btn-blue:hover{opacity:0.8;}
+  .btn-icon{background:transparent;border:1px solid var(--border-strong);width:31px;height:31px;border-radius:var(--radius-sm);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:var(--text-muted);}
+  .btn-icon.edit-btn:hover{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+  .btn-icon.del:hover{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+
+  /* EDITOR */
+  .editor-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:7px;background:var(--surface);}
+  .editor-row:hover{border-color:var(--border-strong);}
+  .row-num{font-size:11px;font-weight:600;color:var(--text-faint);font-family:'DM Mono',monospace;min-width:22px;flex-shrink:0;}
+  .row-content{flex:1;min-width:0;}
+  .row-label{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-sub{font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-actions{display:flex;gap:5px;flex-shrink:0;}
+  .add-row-btn{display:flex;align-items:center;gap:8px;width:100%;padding:11px 16px;border:1.5px dashed var(--border-strong);border-radius:var(--radius-sm);background:transparent;color:var(--text-muted);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;}
+  .add-row-btn:hover{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+  .info-pill{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);border-radius:var(--radius-sm);padding:8px 13px;font-size:12px;margin-bottom:14px;}
+
+  /* LISTS EDITOR (auditor, outlet, cluster, area) */
+  .list-section{margin-bottom:20px;}
+  .list-section-title{font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:10px;}
+  .list-items{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+  .list-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border-strong);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--text);}
+  .list-tag .del-tag{background:none;border:none;color:var(--text-faint);cursor:pointer;font-size:14px;line-height:1;padding:0;display:flex;align-items:center;}
+  .list-tag .del-tag:hover{color:var(--red);}
+  .add-tag-row{display:flex;gap:7px;align-items:center;margin-top:6px;}
+  .add-tag-row input{flex:1;font-size:13px;padding:7px 11px;}
+  .add-tag-row button{background:var(--accent);color:var(--accent-text);border:none;padding:7px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+  .add-tag-row button:hover{opacity:0.85;}
+  .section-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border-radius:var(--radius);padding:26px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+  .modal h2{font-size:16px;font-weight:600;margin-bottom:18px;}
+  .modal .field{margin-bottom:12px;}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+
+  /* SUMMARY */
+  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+  @media(max-width:600px){.metric-row{grid-template-columns:1fr 1fr;}}
+  .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 14px;text-align:center;}
+  .metric-val{font-size:30px;font-weight:600;font-family:'DM Mono',monospace;}
+  .metric-lbl{font-size:11px;color:var(--text-faint);margin-top:4px;text-transform:uppercase;letter-spacing:0.4px;}
+  .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge-g{background:var(--green-bg);color:var(--green);}
+  .badge-r{background:var(--red-bg);color:var(--red);}
+  .data-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .data-table th{text-align:left;padding:9px 11px;font-size:10px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap;}
+  .data-table td{padding:10px 11px;border-bottom:1px solid var(--border);vertical-align:top;}
+  .data-table tr:last-child td{border-bottom:none;}
+  .data-table tr:hover td{background:var(--bg);}
+  .bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-top:5px;width:75px;}
+  .bar-fill{height:4px;border-radius:2px;}
+  .issue-list{list-style:none;margin-top:4px;}
+  .issue-list li{font-size:11px;color:var(--red);padding:1px 0;}
+  .issue-list li::before{content:"↳ ";opacity:0.5;}
+  .empty-state{text-align:center;padding:55px 20px;color:var(--text-muted);}
+  .empty-icon{font-size:44px;opacity:0.15;margin-bottom:14px;}
+  .empty-state h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-box">KFL</div>
+    <div>
+      <h1>Kushal Audit Checklist</h1>
+      <p>Kushals Fashion Jewellery · Inventory &amp; Operations Audit <span style="background:#e74c3c;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;margin-left:4px;">v2-fix</span></p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-badge" id="top-badge">0 submissions</div>
+    <button class="btn-sheets" id="sheets-btn" onclick="openSheetsModal()">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sheets-btn-label">☁ Sheets</span>
+    </button>
+  </div>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab active" onclick="goTab(&#39;form&#39;,this)">Audit Checklist</button>
+  <button class="tab" onclick="goTab(&#39;editor&#39;,this)">✎ Edit Checklist <span class="tab-count" id="edit-count">17</span></button>
+  <button class="tab" onclick="goTab(&#39;lists&#39;,this)">✍ Manage Lists</button>
+  <button class="tab" onclick="goTab(&#39;summary&#39;,this)">Summary <span class="tab-count" id="tab-count">0</span></button>
+</div>
+
+<div class="main">
+
+  <!-- ═══ AUDIT FORM ═══ -->
+  <div id="form-panel" class="panel active">
+    <div class="toast toast-green" id="toast">✓ Audit saved. View Summary tab for results.</div>
+
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Audit Type:</span>
+      <div class="audit-type-toggle">
+        <button id="btn-stock" class="active-stock" onclick="setAuditType('stock')">📦 Stock Audit</button>
+        <button id="btn-surprise" onclick="setAuditType('surprise')">⚡ Surprise Audit</button>
+        <button id="btn-cctv" onclick="setAuditType('cctv')">📹 CCTV Audit</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Store &amp; Session Details</div>
+      <div class="grid3">
+        <div class="field">
+          <label>Auditor Name <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="f-auditor"><option value="">Select auditor...</option><option>Yallappa</option><option>Rammurthy</option><option>Manjunath</option><option>Ganesh</option><option>Chandan</option><option>Jeevan</option><option>Chandrakanth</option><option>Udhaya Kumar T</option></select>
+            <button class="btn-add-opt" title="Add new auditor" onclick="quickAdd(&#39;auditor&#39;)">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Outlet Name <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="f-outlet"><option value="">Select outlet...</option><option>AHM - ALPHA MALL</option><option>ATP - COURT ROAD</option><option>BGM - AMBEDKAR ROAD</option><option>BGM - MAHATMA PHULE ROAD</option><option>BIM - JP ROAD</option><option>BLR - 4TH BLOCK JAYANAGAR</option><option>BLR - ARS COMPLEX MALLESHWARAM</option><option>BLR - BASAWESHWAR NAGAR</option><option>BLR - BEL ROAD</option><option>BLR - COMMERCIAL STREET</option><option>BLR - DVG ROAD</option><option>BLR - FORUM SHANTINIKETAN MALL</option><option>BLR - FORUM SOUTH BANGALORE</option><option>BLR - GARUDA MALL</option><option>BLR - HENNUR ROAD</option><option>BLR - HSR LAYOUT</option><option>BLR - INDIRANAGAR</option><option>BLR - JAYNAGAR</option><option>BLR - K R PURAM</option><option>BLR - KAMMANAHALLI</option><option>BLR - KATHRIGUPPE</option><option>BLR - MALL OF ASIA</option><option>BLR - MALLESWARAM</option><option>BLR - MANTRI MALL</option><option>BLR - NEXUS KORAMANGALA MALL</option><option>BLR - ORION MALL</option><option>BLR - PHOENIX MALL WHITEFIELD</option><option>BLR - RMZ MALL</option><option>BLR - ROYAL MEENAKSHI MALL</option><option>BLR - RR NAGAR</option><option>BLR - SAHAKARNAGAR</option><option>BLR - SARJAPUR MAIN ROAD</option><option>BLR - VEGA CITY MALL</option><option>BLR - WHITEFIELD MAIN ROAD</option><option>BPL - DB CITY MALL</option><option>CBT - BROOKEFIELD MALL</option><option>CBT - RS PURAM</option><option>CDR - ELANTE MALL</option><option>CHN - ADYAR</option><option>CHN - EXPRESS AVENUE MALL</option><option>CHN - MARINA MALL</option><option>CHN - MOGAPPAIR WEST ROAD</option><option>CHN - NEXUS VIJAYA MALL</option><option>CHN - PAPER MILL ROAD</option><option>CHN - PHOENIX MALL VELACHERY</option><option>CHN - SELAIYUR</option><option>CHN - T NAGAR</option><option>CHN - THORAIPAKKAM</option><option>CHN - VELACHERY BYPASS ROAD</option><option>CHN - VR MALL</option><option>DEL - KAMLA NAGAR</option><option>GTR - LAXMIPURAM</option><option>GUR - MGF METRO POLITIAN MALL</option><option>GWT - G S ROAD</option><option>HBL - GOKUL ROAD</option><option>HBL - KOPPIKAR ROAD</option><option>HOS - AVALAPALLI</option><option>HSP - VIJAYANAGAR COLLEGE ROAD</option><option>HYD - AS RAO NAGAR</option><option>HYD - ATTAPUR</option><option>HYD - DSL VIRTUE MALL</option><option>HYD - INORBIT MALL</option><option>HYD - JUBILEE HILLS</option><option>HYD - KOMPALLI</option><option>HYD - KONDAPUR</option><option>HYD - KOTHAPET</option><option>HYD - KUKATPALLY</option><option>HYD - LAKESHORE MALL</option><option>HYD - LT MALL</option><option>HYD - NALLAGANDLA</option><option>HYD - NEXUS MALL</option><option>HYD - PANJAGUTTA</option><option>HYD - PARKLANE</option><option>HYD - SARATH CITY MALL</option><option>HYD - VANATSALIPURAM</option><option>IDR - ORBIT MALL</option><option>IDR - PHEONIX CITADEL MALL</option><option>IDR - SCHEME NO 140</option><option>IDR - SNEH NAGAR</option><option>KCH - FORUM MALL</option><option>KCH - LULU MALL</option><option>KCH - MG ROAD</option><option>KHM - WYRA ROAD</option><option>KKN - RAMA KRISHNARAO PET</option><option>KPR - RAJARAMPURI</option><option>KRL - BHAGYA NAGAR</option><option>KRM - AMBEDKAR ROAD</option><option>LUK - PHOENIX PALASSIO MALL</option><option>MDR - ANNA NAGAR</option><option>MGL - BALMATTA</option><option>MGL - CITY CENTER MALL</option><option>MGL - NEXUS FIZA MALL</option><option>MUM - PHOENIX MARKET CITY</option><option>MUM - R CITY MALL</option><option>MYS - DEVRAJ URS ROAD</option><option>MYS - MALL OF MYSORE</option><option>MYS - NEXUS MALL</option><option>NLR - MINI BYPASS ROAD</option><option>NZM - PRAGATHI NAGAR</option><option>ONG - M M ROAD</option><option>PUN - KOREGAON PARK</option><option>PUN - MALL OF MILLEENNIUM</option><option>PUN - PHOENIX MALL VIMAN NAGAR</option><option>PUN - PIMPRI CHINCHWAD</option><option>PUN - SOLITAIRE BUSINESS HUB</option><option>PUN - WESTEND MALL</option><option>RJM - DANVAIPETA</option><option>SLM - SARADA COLLEGE ROAD</option><option>TIR - PALLADAM MAIN ROAD</option><option>TPL - KARUR BYPASS ROAD</option><option>TRP - AIR ROAD</option><option>TRV - LULU MALL</option><option>UDP - MAIN MARKET</option><option>VIG - MADHURWADA</option><option>VIG - SIRIPURAM</option><option>VJN - SRINIVASA NAGAR</option><option>VJW - GAYATHRI NAGAR</option><option>VJW - M G ROAD</option><option>WRL - NAIM NAGAR</option></select>
+            <button class="btn-add-opt" title="Add new outlet" onclick="quickAdd(&#39;outlet&#39;)">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Audit Date <span class="req">*</span></label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+      <div class="grid3" id="cctv-extra-row" style="display:none;">
+        <div class="field">
+          <label>Watched Date</label>
+          <input type="date" id="f-watched-date">
+        </div>
+        <div class="field">
+          <label>Watch Type <span class="req">*</span></label>
+          <select id="f-watch-type">
+            <option value="">Select...</option>
+            <option value="Full">Full Watch</option>
+            <option value="Random">Random Watch</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field">
+          <label>Cluster Manager <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="f-cluster"><option value="">Select...</option><option>Ajmal</option><option>Aveen</option><option>Kanagarathnam</option><option>Karthik</option><option>Mudassir</option><option>Sabari</option><option>Siva</option><option>Ravindra</option><option>Ambarish</option><option>Akash Mishra</option><option>Sathish G</option><option>Chandu Krishna</option><option>Jyothi Mishra</option></select>
+            <button class="btn-add-opt" title="Add new cluster manager" onclick="quickAdd(&#39;cluster&#39;)">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Area Manager</label>
+          <div class="select-wrap">
+            <select id="f-area"><option value="">Select...</option><option>Manirathnam</option><option>Rahul</option><option>Akash Mishra</option><option>Raghav</option><option>Sathish</option><option>Venkata Chary</option></select>
+            <button class="btn-add-opt" title="Add new area manager" onclick="quickAdd(&#39;area&#39;)">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Quarter &amp; Month</label>
+          <div style="display:flex;gap:7px;">
+            <select id="f-qtr" style="flex:1;"><option value="">Qtr</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
+            <select id="f-month" style="flex:2;"><option value="">Month</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="shrinkage-card">
+      <div class="card-title">Shrinkage &amp; Sales Data</div>
+      <div class="grid3">
+        <div class="field"><label>Shrinkage % <span class="req">*</span></label><input type="text" id="f-spct" placeholder="e.g. 0.12"></div>
+        <div class="field"><label>Shrinkage Value (₹)</label><input type="text" id="f-sval" placeholder="Amount in ₹"></div>
+        <div class="field"><label>Shrinkage Quantity <span class="req">*</span></label><input type="text" id="f-sqty" placeholder="No. of pieces"></div>
+      </div>
+      <div class="grid2"><div class="field"><label>Store Sale (₹)</label><input type="text" id="f-sale" placeholder="₹ total sales"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">Operations &amp; Compliance Checklist <span id="form-check-count" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;">(17 points)</span></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-blue" onclick="openEditorForCurrentAudit()">✎ Edit Checklist</button>
+        </div>
+      </div>
+      <div id="checklist-body">
+    <div class="check-row" id="row-hygiene">
+      <div class="check-info">
+        <div class="check-q">Store Hygiene maintained</div>
+        <div class="check-sub">Whether store maintained hygiene at the store level</div>
+        <div class="issue-wrap" id="ib-hygiene">
+          <input type="text" placeholder="Describe the issue found..." id="it-hygiene">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;hygiene&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;hygiene&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-temple">
+      <div class="check-info">
+        <div class="check-q">Temple polish — no deviation</div>
+        <div class="check-sub">Any deviation found in temple polish process</div>
+        <div class="issue-wrap" id="ib-temple">
+          <input type="text" placeholder="Describe the issue found..." id="it-temple">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;temple&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;temple&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-petty">
+      <div class="check-info">
+        <div class="check-q">Petty cash matches physical amount</div>
+        <div class="check-sub">Whether petty cash matching with physical amount</div>
+        <div class="issue-wrap" id="ib-petty">
+          <input type="text" placeholder="Describe the issue found..." id="it-petty">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;petty&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;petty&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-float">
+      <div class="check-info">
+        <div class="check-q">Float cash matches physical amount</div>
+        <div class="check-sub">Whether float cash matching with the physical amount</div>
+        <div class="issue-wrap" id="ib-float">
+          <input type="text" placeholder="Describe the issue found..." id="it-float">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;float&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;float&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-temple_count">
+      <div class="check-info">
+        <div class="check-q">Temple items counted daily</div>
+        <div class="check-sub">Whether store doing temple items counting on daily basis</div>
+        <div class="issue-wrap" id="ib-temple_count">
+          <input type="text" placeholder="Describe the issue found..." id="it-temple_count">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;temple_count&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;temple_count&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-inv_count">
+      <div class="check-info">
+        <div class="check-q">Weekly physical inventory count done</div>
+        <div class="check-sub">Whether weekly wise physical inventory counting or not</div>
+        <div class="issue-wrap" id="ib-inv_count">
+          <input type="text" placeholder="Describe the issue found..." id="it-inv_count">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;inv_count&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;inv_count&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-pantry">
+      <div class="check-info">
+        <div class="check-q">Counting summary pasted at Pantry</div>
+        <div class="check-sub">Whether stores have pasted counting summary at pantry</div>
+        <div class="issue-wrap" id="ib-pantry">
+          <input type="text" placeholder="Describe the issue found..." id="it-pantry">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;pantry&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;pantry&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-manual_bills">
+      <div class="check-info">
+        <div class="check-q">Manual bills — no issues</div>
+        <div class="check-sub">Whether issue found in the manual bills</div>
+        <div class="issue-wrap" id="ib-manual_bills">
+          <input type="text" placeholder="Describe the issue found..." id="it-manual_bills">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;manual_bills&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;manual_bills&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-repaired">
+      <div class="check-info">
+        <div class="check-q">Repaired items kept separate</div>
+        <div class="check-sub">Whether repaired items kept separate from store inventory</div>
+        <div class="issue-wrap" id="ib-repaired">
+          <input type="text" placeholder="Describe the issue found..." id="it-repaired">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;repaired&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;repaired&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-vouchers">
+      <div class="check-info">
+        <div class="check-q">Redeemed gift vouchers physically available</div>
+        <div class="check-sub">Redeemed vouchers physically available in the store</div>
+        <div class="issue-wrap" id="ib-vouchers">
+          <input type="text" placeholder="Describe the issue found..." id="it-vouchers">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;vouchers&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;vouchers&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-process">
+      <div class="check-info">
+        <div class="check-q">Process compliance — no issues</div>
+        <div class="check-sub">Temple polish, birthday discount, point redemption</div>
+        <div class="issue-wrap" id="ib-process">
+          <input type="text" placeholder="Describe the issue found..." id="it-process">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;process&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;process&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-transfer_in">
+      <div class="check-info">
+        <div class="check-q">Transfer In within timeline</div>
+        <div class="check-sub">Whether Transfer In pending more than timeline</div>
+        <div class="issue-wrap" id="ib-transfer_in">
+          <input type="text" placeholder="Describe the issue found..." id="it-transfer_in">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;transfer_in&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;transfer_in&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-inv_location">
+      <div class="check-info">
+        <div class="check-q">Inventory location process followed</div>
+        <div class="check-sub">Whether inventory location process followed by stores</div>
+        <div class="issue-wrap" id="ib-inv_location">
+          <input type="text" placeholder="Describe the issue found..." id="it-inv_location">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;inv_location&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;inv_location&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-tagless">
+      <div class="check-info">
+        <div class="check-q">No deviation in tagless process</div>
+        <div class="check-sub">Deviation in the tagless process</div>
+        <div class="issue-wrap" id="ib-tagless">
+          <input type="text" placeholder="Describe the issue found..." id="it-tagless">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;tagless&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;tagless&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-grooming">
+      <div class="check-info">
+        <div class="check-q">Grooming standards followed</div>
+        <div class="check-sub">Whether grooming standard followed by employees or not</div>
+        <div class="issue-wrap" id="ib-grooming">
+          <input type="text" placeholder="Describe the issue found..." id="it-grooming">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;grooming&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;grooming&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-display">
+      <div class="check-info">
+        <div class="check-q">Display — no issues found</div>
+        <div class="check-sub">Whether display issue found in the store</div>
+        <div class="issue-wrap" id="ib-display">
+          <input type="text" placeholder="Describe the issue found..." id="it-display">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;display&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;display&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div>
+    <div class="check-row" id="row-fragrance">
+      <div class="check-info">
+        <div class="check-q">Fragrance pot filled with liquid</div>
+        <div class="check-sub">Whether fragrance pot filled with liquid or not</div>
+        <div class="issue-wrap" id="ib-fragrance">
+          <input type="text" placeholder="Describe the issue found..." id="it-fragrance">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setCheck(&#39;fragrance&#39;,&#39;ok&#39;,this)">No issue</button>
+        <button onclick="setCheck(&#39;fragrance&#39;,&#39;issue&#39;,this)">Issue found</button>
+      </div>
+    </div></div>
+    </div>
+
+    <div class="submit-row">
+      <button class="btn-sec" onclick="resetForm()">↻ Clear form</button>
+      <button class="btn-primary" onclick="submitAudit()">Save Audit &amp; View Summary →</button>
+    </div>
+  </div>
+
+  <!-- ═══ CHECKLIST EDITOR ═══ -->
+  <div id="editor-panel" class="panel">
+    <div class="toast toast-blue" id="editor-toast">✓ Checklist updated and applied.</div>
+    <div class="card">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title" style="margin-bottom:3px;">Checklist Manager</div>
+          <div style="font-size:13px;color:var(--text-muted);">Edit labels, descriptions, add or delete check points.</div>
+        </div>
+        <span id="check-count-lbl" style="font-size:12px;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted);">Editing:</span>
+        <div class="audit-type-toggle">
+          <button id="editor-btn-stock" class="active-stock" onclick="setEditorMode('stock')">📦 Stock / Surprise</button>
+          <button id="editor-btn-cctv" onclick="setEditorMode('cctv')">📹 CCTV Audit</button>
+        </div>
+      </div>
+      <div class="info-pill">ⓘ Changes apply to all new audits. Past submissions are not affected.</div>
+      <div id="editor-list"></div>
+      <button class="add-row-btn" onclick="openCheckModal(-1)"><span style="font-size:20px;font-weight:300;">+</span> Add new checklist item</button>
+    </div>
+    <div class="submit-row">
+      <button class="btn-sec" onclick="goTab(&#39;form&#39;,document.querySelectorAll(&#39;.tab&#39;)[0])">← Back to Audit Form</button>
+      <button class="btn-primary" onclick="saveChecklist()">✓ Save &amp; Apply Changes</button>
+    </div>
+  </div>
+
+  <!-- ═══ MANAGE LISTS ═══ -->
+  <div id="lists-panel" class="panel">
+    <div class="toast toast-blue" id="lists-toast">✓ List updated. Dropdowns refreshed.</div>
+    <div class="card">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title" style="margin-bottom:3px;">Manage Dropdown Lists</div>
+          <div style="font-size:13px;color:var(--text-muted);">Add or remove options for all dropdown fields in the audit form.</div>
+        </div>
+      </div>
+
+      <!-- AUDITORS -->
+      <div class="list-section">
+        <div class="list-section-title">Auditor Names <span style="font-weight:400;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;font-size:11px;" id="auditor-cnt"></span></div>
+        <div class="list-items" id="auditor-tags"></div>
+        <div class="add-tag-row">
+          <input type="text" id="add-auditor" placeholder="Type new auditor name..." onkeydown="if(event.key===&#39;Enter&#39;)addListItem(&#39;auditor&#39;)">
+          <button onclick="addListItem(&#39;auditor&#39;)">+ Add</button>
+        </div>
+      </div>
+      <hr class="section-divider">
+
+      <!-- CLUSTER MANAGERS -->
+      <div class="list-section">
+        <div class="list-section-title">Cluster Manager Names <span style="font-weight:400;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;font-size:11px;" id="cluster-cnt"></span></div>
+        <div class="list-items" id="cluster-tags"></div>
+        <div class="add-tag-row">
+          <input type="text" id="add-cluster" placeholder="Type new cluster manager name..." onkeydown="if(event.key===&#39;Enter&#39;)addListItem(&#39;cluster&#39;)">
+          <button onclick="addListItem(&#39;cluster&#39;)">+ Add</button>
+        </div>
+      </div>
+      <hr class="section-divider">
+
+      <!-- AREA MANAGERS -->
+      <div class="list-section">
+        <div class="list-section-title">Area Manager Names <span style="font-weight:400;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;font-size:11px;" id="area-cnt"></span></div>
+        <div class="list-items" id="area-tags"></div>
+        <div class="add-tag-row">
+          <input type="text" id="add-area" placeholder="Type new area manager name..." onkeydown="if(event.key===&#39;Enter&#39;)addListItem(&#39;area&#39;)">
+          <button onclick="addListItem(&#39;area&#39;)">+ Add</button>
+        </div>
+      </div>
+      <hr class="section-divider">
+
+      <!-- OUTLETS -->
+      <div class="list-section">
+        <div class="list-section-title">Outlet Names <span style="font-weight:400;color:var(--text-faint);font-family:&#39;DM Mono&#39;,monospace;font-size:11px;" id="outlet-cnt"></span></div>
+        <div class="list-items" id="outlet-tags"></div>
+        <div class="add-tag-row">
+          <input type="text" id="add-outlet" placeholder="Type new outlet name (e.g. BLR - NEW MALL)..." onkeydown="if(event.key===&#39;Enter&#39;)addListItem(&#39;outlet&#39;)">
+          <button onclick="addListItem(&#39;outlet&#39;)">+ Add</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="submit-row">
+      <button class="btn-sec" onclick="goTab(&#39;form&#39;,document.querySelectorAll(&#39;.tab&#39;)[0])">← Back to Audit Form</button>
+      <button class="btn-primary" onclick="applyLists()">✓ Apply to Audit Form</button>
+    </div>
+  </div>
+
+  <!-- ═══ SUMMARY ═══ -->
+  <div id="summary-panel" class="panel">
+    <div id="sum-loading" style="display:none;text-align:center;padding:55px 20px;color:var(--text-muted);">
+      <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">⏳</div>
+      <div style="font-size:14px;font-weight:500;">Loading submissions from Google Sheets…</div>
+    </div>
+    <div id="sum-empty" class="empty-state">
+      <div class="empty-icon">☐</div>
+      <h3>No audits submitted yet</h3>
+      <p>Complete the checklist and save to see your summary here.</p>
+    </div>
+    <div id="sum-content" style="display:none;">
+      <div class="metric-row" id="metric-row"></div>
+
+      <!-- SUB-TABS -->
+      <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0;">
+        <button id="sub-tab-all" onclick="switchSubTab('all')" style="background:none;border:none;border-bottom:2.5px solid var(--accent);padding:8px 18px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">All Submissions</button>
+        <button id="sub-tab-shrinkage" onclick="switchSubTab('shrinkage')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Shrinkage Summary</button>
+      </div>
+
+      <!-- ALL SUBMISSIONS VIEW -->
+      <div id="sub-view-all">
+        <!-- FILTERS + EXPORT -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">All Submissions <span id="sum-source" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;font-family:'DM Mono',monospace;"></span></span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-blue" id="refresh-btn" onclick="renderSummary()" style="display:none;">↻ Refresh</button>
+              <button class="btn-primary" onclick="downloadCSV()" style="font-size:13px;padding:7px 16px;">↓ Export CSV</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="f-search" placeholder="🔍 Search outlet..." oninput="applyFilters()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+            <select id="f-qtr-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="f-month-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+            <select id="f-audit-type-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Audit Types</option>
+              <option value="stock">Stock Audit</option>
+              <option value="surprise">Surprise Audit</option>
+              <option value="cctv">CCTV Audit</option>
+            </select>
+            <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+          </div>
+        </div>
+
+        <!-- SUBMISSIONS TABLE -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
+        </div>
+
+        <!-- GAP ANALYSIS -->
+        <div class="card" id="gap-card" style="display:none;">
+          <div class="card-title">Gap Analysis — Issues Found</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="gap-content"></div>
+        </div>
+      </div>
+
+      <!-- SHRINKAGE SUMMARY VIEW -->
+      <div id="sub-view-shrinkage" style="display:none;">
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">Shrinkage Summary</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-primary" onclick="downloadShrinkageCSV()" style="font-size:13px;padding:7px 16px;">↓ Export Shrinkage CSV</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="sh-search" placeholder="🔍 Search outlet..." oninput="renderShrinkageTable()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+            <select id="sh-qtr" onchange="renderShrinkageTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="sh-month" onchange="renderShrinkageTable()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="data-table" id="shrinkage-table"></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ CHECKLIST ITEM MODAL ═══ -->
+<div class="modal-overlay" id="check-modal">
+  <div class="modal">
+    <h2 id="check-modal-title">Add Checklist Item</h2>
+    <div class="field"><label>Check Point Label <span class="req">*</span></label>
+      <input type="text" id="m-label" placeholder="e.g. Gold purity tag verification"></div>
+    <div class="field" style="margin-top:10px;"><label>Description / Sub-text</label>
+      <input type="text" id="m-sub" placeholder="e.g. Verify all items have BIS hallmark tags"></div>
+    <div class="modal-footer">
+      <button class="btn-sec" onclick="closeCheckModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveCheckModal()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ QUICK ADD MODAL ═══ -->
+<div class="modal-overlay" id="quick-modal">
+  <div class="modal">
+    <h2 id="quick-modal-title">Add New Option</h2>
+    <div class="field"><label id="quick-modal-label">Name <span class="req">*</span></label>
+      <input type="text" id="q-value" placeholder=""></div>
+    <div class="modal-footer">
+      <button class="btn-sec" onclick="closeQuickModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveQuickModal()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GOOGLE SHEETS SETUP MODAL ═══ -->
+<div class="modal-overlay" id="sheets-modal">
+  <div class="modal sheets-modal" style="max-width:560px;">
+    <h2>☁ Google Sheets Backup</h2>
+    <p>Each audit you submit will be automatically saved to your Google Sheet. Follow these one-time setup steps:</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">Create a new <strong>Google Sheet</strong> and open it.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">Click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste the script. <button onclick="copyScript()" id="copy-script-btn" style="background:var(--accent);color:var(--accent-text);border:none;padding:3px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-left:6px;">📋 Copy Script</button></div>
+    </div>
+    <div style="position:relative;display:none;">
+    <div class="script-box" id="apps-script-code">function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  var d = JSON.parse(e.postData.contents);
+  if (d._test) { return ok(); }
+  if (d.action === 'saveChecklist') {
+    var cfg = ss.getSheetByName('_config') || ss.insertSheet('_config');
+    cfg.getRange(1,1).setValue(JSON.stringify(d.checks));
+    return ok();
+  }
+  if (d.action === 'saveLists') {
+    var cfg = ss.getSheetByName('_config') || ss.insertSheet('_config');
+    cfg.getRange(2,1).setValue(JSON.stringify(d.lists));
+    return ok();
+  }
+  if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
+  if (d.action === 'update') {
+    sheet.getRange(d.rowIndex, 1, 1, 18).setValues([[
+      new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
+      d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
+      d.score, d.answered, d.issues.length,
+      d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
+      d.auditType || 'stock', d.watchedDate || ''
+    ]]);
+    return ok();
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Timestamp','Auditor','Outlet','Date','Cluster','Area',
+      'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
+      'Store Sale','Score %','Answered','Issues Count','Issues Detail','Audit Type','Watched Date']);
+  }
+  sheet.appendRow([
+    new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
+    d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
+    d.score, d.answered, d.issues.length,
+    d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
+    d.auditType || 'stock', d.watchedDate || ''
+  ]);
+  return ok();
+}
+function ok() {
+  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (e.parameter.type === 'checklist') {
+    var cfg = ss.getSheetByName('_config');
+    if (cfg) {
+      var val = cfg.getRange(1,1).getValue();
+      if (val) {
+        return ContentService.createTextOutput(JSON.stringify({checks:JSON.parse(val)}))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({checks:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (e.parameter.type === 'lists') {
+    var cfg = ss.getSheetByName('_config');
+    if (cfg) {
+      var val = cfg.getRange(2,1).getValue();
+      if (val) {
+        return ContentService.createTextOutput(JSON.stringify({lists:JSON.parse(val)}))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    return ContentService.createTextOutput(JSON.stringify({lists:{}}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var sheet = ss.getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    return ContentService.createTextOutput(JSON.stringify({rows:[]}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  var tz = Session.getScriptTimeZone();
+  var rows = data.slice(1).map(function(row, idx) {
+    var issueStr = row[15] ? String(row[15]) : '';
+    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
+      var i = s.indexOf(': ');
+      return i > -1 ? {label:s.substring(0,i), note:s.substring(i+2)} : {label:s, note:''};
+    }) : [];
+    var ts = row[0];
+    var tsStr = ts instanceof Date
+      ? Utilities.formatDate(ts, tz, 'dd MMM, hh:mm a')
+      : String(ts);
+    var dateVal = row[3];
+    var dateStr = dateVal instanceof Date
+      ? Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd')
+      : String(dateVal);
+    return {
+      _row: idx + 2,
+      ts: tsStr, auditor: row[1], outlet: row[2], date: dateStr,
+      cluster: row[4], area: row[5], qtr: row[6], month: row[7],
+      spct: row[8], sval: row[9], sqty: row[10], sale: row[11],
+      score: row[12] !== '' ? Number(row[12]) : null,
+      answered: Number(row[13]), issues: issues,
+      auditType: row[16] ? String(row[16]) : 'stock',
+      watchedDate: row[17] ? String(row[17]) : ''
+    };
+  });
+  return ContentService.createTextOutput(JSON.stringify({rows:rows}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div></div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">Click <strong>Deploy → New deployment</strong>. Set type to <strong>Web app</strong>, execute as <strong>Me</strong>, access to <strong>Anyone</strong>. Click Deploy and copy the URL.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">Paste the deployment URL below:</div>
+    </div>
+
+    <div class="field" style="margin-top:6px;">
+      <label>Apps Script Web App URL <span class="req">*</span></label>
+      <input type="url" id="sheets-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div id="sheets-status" style="font-size:12px;margin-top:6px;display:none;"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-sec" onclick="clearSheetsUrl()" style="color:var(--red);">✕ Disconnect</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-sec" onclick="closeSheetsModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveSheetsUrl()">Save & Test</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EDIT SUBMISSION MODAL ═══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" style="max-width:680px;max-height:90vh;overflow-y:auto;">
+    <h2 id="edit-modal-title">Edit Submission</h2>
+    <div class="grid3">
+      <div class="field"><label>Auditor <span class="req">*</span></label><select id="e-auditor"><option value="">Select...</option></select></div>
+      <div class="field"><label>Outlet <span class="req">*</span></label><select id="e-outlet"><option value="">Select...</option></select></div>
+      <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="e-date"></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Cluster Manager <span class="req">*</span></label><select id="e-cluster"><option value="">Select...</option></select></div>
+      <div class="field"><label>Area Manager</label><select id="e-area"><option value="">Select...</option></select></div>
+      <div class="field"><label>Quarter &amp; Month</label><div style="display:flex;gap:7px;"><select id="e-qtr" style="flex:1;"><option value="">Qtr</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select><select id="e-month" style="flex:2;"><option value="">Month</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div></div>
+    </div>
+    <div class="grid3" style="margin-top:4px;">
+      <div class="field"><label>Shrinkage %</label><input type="text" id="e-spct" placeholder="e.g. 0.12"></div>
+      <div class="field"><label>Shrinkage Value (₹)</label><input type="text" id="e-sval" placeholder="Amount"></div>
+      <div class="field"><label>Shrinkage Qty</label><input type="text" id="e-sqty" placeholder="Pieces"></div>
+    </div>
+    <div class="grid2" style="margin-top:0;">
+      <div class="field"><label>Store Sale (₹)</label><input type="text" id="e-sale" placeholder="₹ total sales"></div>
+    </div>
+    <div class="card-title" style="margin-top:16px;margin-bottom:10px;">Operations Checklist — <span id="edit-modal-type-label" style="color:var(--blue);text-transform:none;font-size:12px;"></span></div>
+    <div id="edit-checklist-body"></div>
+    <div class="modal-footer">
+      <button class="btn-sec" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const DEFAULT_CHECKS = [
+  {id:'hygiene',      label:'Store Hygiene maintained',                    sub:'Whether store maintained hygiene at the store level'},
+  {id:'temple',       label:'Temple polish — no deviation',                sub:'Any deviation found in temple polish process'},
+  {id:'petty',        label:'Petty cash matches physical amount',          sub:'Whether petty cash matching with physical amount'},
+  {id:'float',        label:'Float cash matches physical amount',          sub:'Whether float cash matching with the physical amount'},
+  {id:'temple_count', label:'Temple items counted daily',                  sub:'Whether store doing temple items counting on daily basis'},
+  {id:'inv_count',    label:'Weekly physical inventory count done',        sub:'Whether weekly wise physical inventory counting or not'},
+  {id:'pantry',       label:'Counting summary pasted at Pantry',           sub:'Whether stores have pasted counting summary at pantry'},
+  {id:'manual_bills', label:'Manual bills — no issues',                    sub:'Whether issue found in the manual bills'},
+  {id:'repaired',     label:'Repaired items kept separate',                sub:'Whether repaired items kept separate from store inventory'},
+  {id:'vouchers',     label:'Redeemed gift vouchers physically available', sub:'Redeemed vouchers physically available in the store'},
+  {id:'process',      label:'Process compliance — no issues',              sub:'Temple polish, birthday discount, point redemption'},
+  {id:'transfer_in',  label:'Transfer In within timeline',                 sub:'Whether Transfer In pending more than timeline'},
+  {id:'inv_location', label:'Inventory location process followed',         sub:'Whether inventory location process followed by stores'},
+  {id:'tagless',      label:'No deviation in tagless process',             sub:'Deviation in the tagless process'},
+  {id:'grooming',     label:'Grooming standards followed',                 sub:'Whether grooming standard followed by employees or not'},
+  {id:'display',      label:'Display — no issues found',                   sub:'Whether display issue found in the store'},
+  {id:'fragrance',    label:'Fragrance pot filled with liquid',            sub:'Whether fragrance pot filled with liquid or not'},
+];
+let CHECKS = JSON.parse(localStorage.getItem('kfl_checks') || 'null') || DEFAULT_CHECKS;
+
+const DEFAULT_CCTV_CHECKS = [
+  {id:'cctv_grooming',      label:'Grooming Standard followed',                    sub:'Whether Grooming Standard followed by the store or not'},
+  {id:'cctv_display',       label:'Item Display done properly',                    sub:'Whether Item Display is done properly or not'},
+  {id:'cctv_attendance',    label:'Employees attending customers',                 sub:'Whether Employees are attending customer or not'},
+  {id:'cctv_behaviour',     label:'Employee behaviour good on floor',              sub:'Whether Employees Behaviour is good in the Floor or not'},
+  {id:'cctv_att_reg',       label:'No issue in Attendance Regularization',         sub:'Whether issue found in Attendance Regularization'},
+  {id:'cctv_open_close',    label:'Store opening & closing as per process',        sub:'Whether Employees are opening and closing store as per Process or not'},
+  {id:'cctv_inward',        label:'Store Inward process followed',                 sub:'Whether Store followed Inward process as per the given instruction'},
+  {id:'cctv_sop',           label:'No SOP deviation found',                        sub:'Whether issue found in the SOP deviation'},
+  {id:'cctv_name_badge',    label:'Employees wearing Name badge',                  sub:'Whether Store Employees wore Name badge or not'},
+  {id:'cctv_printed_bill',  label:'Printed bill given to customer',                sub:'Whether store employee given printed bill to the customer or not'},
+  {id:'cctv_manual_bill',   label:'Manual billing approval taken',                 sub:'Whether store taken approval for Manual billing'},
+  {id:'cctv_camera',        label:'Camera not turned without approval',            sub:'Whether store employee turned the camera without approval from the audit'},
+  {id:'cctv_ecomm',         label:'Ecommerce process followed',                    sub:'Whether store are following Ecommerce process or not'},
+  {id:'cctv_redemption',    label:'No Point redemption issue',                     sub:'Point redemption Issue'},
+  {id:'cctv_sales_return',  label:'Sales Returns approval taken',                  sub:'Whether store taken approval for Sales Returns'},
+  {id:'cctv_stock_inward',  label:'Stock inward done on time',                     sub:'Whether stock inward done on time'},
+  {id:'cctv_discount',      label:'No wrong discount given to customer',           sub:'Whether store given wrong discount to customer or not'},
+  {id:'cctv_watched_full',  label:'Store watched full (not random)',               sub:'Store watched full or not — Full = No issue, Random = Issue found'},
+  {id:'cctv_weekly_count',  label:'Weekly counting process without deviation',     sub:'Whether weekly counting process has done without any deviation'},
+  {id:'cctv_mgr_present',   label:'Store manager present in store',                sub:'Whether store manager present in the store or not'},
+  {id:'cctv_bill_edit',     label:'Bill Edit process followed',                    sub:'Whether store has followed the Bill Edit process or not'},
+  {id:'cctv_briefing',      label:'Daily Briefing conducted',                      sub:'Whether daily wise Briefing Conducted or not'},
+];
+
+let CCTV_CHECKS = JSON.parse(localStorage.getItem('kfl_cctv_checks') || 'null') || DEFAULT_CCTV_CHECKS;
+
+function getActiveChecks() {
+  return currentAuditType === 'cctv' ? CCTV_CHECKS : CHECKS;
+}
+
+const DEFAULT_LISTS = {
+  auditor: ['Yallappa','Rammurthy','Manjunath','Ganesh','Chandan','Jeevan','Chandrakanth','Udhaya Kumar T'],
+  cluster: ['Ajmal','Aveen','Kanagarathnam','Karthik','Mudassir','Sabari','Siva','Ravindra','Ambarish','Akash Mishra','Sathish G','Chandu Krishna','Jyothi Mishra'],
+  area:    ['Manirathnam','Rahul','Akash Mishra','Raghav','Sathish','Venkata Chary'],
+  outlet:  ['AHM - ALPHA MALL','ATP - COURT ROAD','BGM - AMBEDKAR ROAD','BGM - MAHATMA PHULE ROAD','BIM - JP ROAD','BLR - 4TH BLOCK JAYANAGAR','BLR - ARS COMPLEX MALLESHWARAM','BLR - BASAWESHWAR NAGAR','BLR - BEL ROAD','BLR - COMMERCIAL STREET','BLR - DVG ROAD','BLR - FORUM SHANTINIKETAN MALL','BLR - FORUM SOUTH BANGALORE','BLR - GARUDA MALL','BLR - HENNUR ROAD','BLR - HSR LAYOUT','BLR - INDIRANAGAR','BLR - JAYNAGAR','BLR - K R PURAM','BLR - KAMMANAHALLI','BLR - KATHRIGUPPE','BLR - MALL OF ASIA','BLR - MALLESWARAM','BLR - MANTRI MALL','BLR - NEXUS KORAMANGALA MALL','BLR - ORION MALL','BLR - PHOENIX MALL WHITEFIELD','BLR - RMZ MALL','BLR - ROYAL MEENAKSHI MALL','BLR - RR NAGAR','BLR - SAHAKARNAGAR','BLR - SARJAPUR MAIN ROAD','BLR - VEGA CITY MALL','BLR - WHITEFIELD MAIN ROAD','BPL - DB CITY MALL','CBT - BROOKEFIELD MALL','CBT - RS PURAM','CDR - ELANTE MALL','CHN - ADYAR','CHN - EXPRESS AVENUE MALL','CHN - MARINA MALL','CHN - MOGAPPAIR WEST ROAD','CHN - NEXUS VIJAYA MALL','CHN - PAPER MILL ROAD','CHN - PHOENIX MALL VELACHERY','CHN - SELAIYUR','CHN - T NAGAR','CHN - THORAIPAKKAM','CHN - VELACHERY BYPASS ROAD','CHN - VR MALL','DEL - KAMLA NAGAR','GTR - LAXMIPURAM','GUR - MGF METRO POLITIAN MALL','GWT - G S ROAD','HBL - GOKUL ROAD','HBL - KOPPIKAR ROAD','HOS - AVALAPALLI','HSP - VIJAYANAGAR COLLEGE ROAD','HYD - AS RAO NAGAR','HYD - ATTAPUR','HYD - DSL VIRTUE MALL','HYD - INORBIT MALL','HYD - JUBILEE HILLS','HYD - KOMPALLI','HYD - KONDAPUR','HYD - KOTHAPET','HYD - KUKATPALLY','HYD - LAKESHORE MALL','HYD - LT MALL','HYD - NALLAGANDLA','HYD - NEXUS MALL','HYD - PANJAGUTTA','HYD - PARKLANE','HYD - SARATH CITY MALL','HYD - VANATSALIPURAM','IDR - ORBIT MALL','IDR - PHEONIX CITADEL MALL','IDR - SCHEME NO 140','IDR - SNEH NAGAR','KCH - FORUM MALL','KCH - LULU MALL','KCH - MG ROAD','KHM - WYRA ROAD','KKN - RAMA KRISHNARAO PET','KPR - RAJARAMPURI','KRL - BHAGYA NAGAR','KRM - AMBEDKAR ROAD','LUK - PHOENIX PALASSIO MALL','MDR - ANNA NAGAR','MGL - BALMATTA','MGL - CITY CENTER MALL','MGL - NEXUS FIZA MALL','MUM - PHOENIX MARKET CITY','MUM - R CITY MALL','MYS - DEVRAJ URS ROAD','MYS - MALL OF MYSORE','MYS - NEXUS MALL','NLR - MINI BYPASS ROAD','NZM - PRAGATHI NAGAR','ONG - M M ROAD','PUN - KOREGAON PARK','PUN - MALL OF MILLEENNIUM','PUN - PHOENIX MALL VIMAN NAGAR','PUN - PIMPRI CHINCHWAD','PUN - SOLITAIRE BUSINESS HUB','PUN - WESTEND MALL','RJM - DANVAIPETA','SLM - SARADA COLLEGE ROAD','TIR - PALLADAM MAIN ROAD','TPL - KARUR BYPASS ROAD','TRP - AIR ROAD','TRV - LULU MALL','UDP - MAIN MARKET','VIG - MADHURWADA','VIG - SIRIPURAM','VJN - SRINIVASA NAGAR','VJW - GAYATHRI NAGAR','VJW - M G ROAD','WRL - NAIM NAGAR']
+};
+
+const _savedLists = JSON.parse(localStorage.getItem('kfl_lists') || 'null');
+const LISTS = {
+  auditor: (_savedLists && _savedLists.auditor) || DEFAULT_LISTS.auditor,
+  cluster: (_savedLists && _savedLists.cluster) || DEFAULT_LISTS.cluster,
+  area:    (_savedLists && _savedLists.area)    || DEFAULT_LISTS.area,
+  outlet:  (_savedLists && _savedLists.outlet)  || DEFAULT_LISTS.outlet,
+};
+function saveLists() {
+  localStorage.setItem('kfl_lists', JSON.stringify(LISTS));
+  if (SHEETS_URL) {
+    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveLists', lists:LISTS})}).catch(()=>{});
+  }
+}
+
+const checkStates = {};
+const photoStates = {}; // {checkId: [base64, ...]}
+const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
+let checkModalIdx = -1;
+let currentAuditType = 'stock';
+
+function setAuditType(type) {
+  currentAuditType = type;
+  document.getElementById('btn-stock').className    = type === 'stock'    ? 'active-stock' : '';
+  document.getElementById('btn-surprise').className = type === 'surprise' ? 'active-surprise' : '';
+  document.getElementById('btn-cctv').className     = type === 'cctv'     ? 'active-cctv' : '';
+  document.getElementById('shrinkage-card').style.display  = type === 'stock' ? '' : 'none';
+  document.getElementById('cctv-extra-row').style.display  = type === 'cctv'  ? '' : 'none';
+  buildChecklist();
+}
+let quickModalKey = '';
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+function goTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById(tab+'-panel').classList.add('active');
+  if (tab==='summary') renderSummary();
+  if (tab==='editor')  renderEditor();
+  if (tab==='lists')   { renderListsPanel(); fetchListsFromSheets(); }
+}
+
+// ══════════════════════════════════════════════════════
+// POPULATE DROPDOWNS
+// ══════════════════════════════════════════════════════
+function populateSelect(id, key, placeholder) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` +
+    LISTS[key].map(v => `<option${v===cur?' selected':''}>${v}</option>`).join('');
+}
+
+function populateAllSelects() {
+  populateSelect('f-auditor','auditor','Select auditor...');
+  populateSelect('f-outlet','outlet','Select outlet...');
+  populateSelect('f-cluster','cluster','Select...');
+  populateSelect('f-area','area','Select...');
+  // also filter dropdown in summary
+  const ff = document.getElementById('f-filter');
+  if (ff) {
+    ff.innerHTML = '<option value="">All auditors</option>' +
+      LISTS.auditor.map(v=>`<option>${v}</option>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CHECKLIST FORM
+// ══════════════════════════════════════════════════════
+function buildChecklist() {
+  const activeChecks = getActiveChecks();
+  const body = document.getElementById('checklist-body');
+  body.innerHTML = activeChecks.map(c => `
+    <div class="check-row" id="row-${c.id}">
+      <div class="check-info">
+        <div class="check-q">${c.label}</div>
+        <div class="check-sub">${c.sub}</div>
+        <div class="issue-wrap" id="ib-${c.id}">
+          <input type="text" placeholder="Describe the issue found..." id="it-${c.id}" />
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="photo-input-${c.id}" style="display:none" onchange="handlePhotoUpload('${c.id}',this)">
+        <button type="button" class="btn-photo" onclick="document.getElementById('photo-input-${c.id}').click()">📷 Attach Photo</button>
+        <div class="photo-preview" id="photo-preview-${c.id}"></div>
+      </div>
+      <div class="tog">
+        <button class="ok" onclick="setCheck('${c.id}','ok',this)">No issue</button>
+        <button onclick="setCheck('${c.id}','issue',this)">Issue found</button>
+      </div>
+    </div>`).join('');
+  activeChecks.forEach(c => {
+    if (!checkStates[c.id]) checkStates[c.id] = 'ok';
+    if (photoStates[c.id] && photoStates[c.id].length) renderPhotoPreview(c.id);
+  });
+  document.getElementById('edit-count').textContent = CHECKS.length;
+  document.getElementById('form-check-count').textContent = '('+activeChecks.length+' points)';
+}
+
+function setCheck(id, val, btn) {
+  document.getElementById('row-'+id).querySelectorAll('.tog button').forEach(b=>b.classList.remove('ok','issue'));
+  btn.classList.add(val);
+  checkStates[id] = val;
+  const ib = document.getElementById('ib-'+id);
+  if (ib) ib.style.display = val==='issue'?'block':'none';
+}
+
+function handlePhotoUpload(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const img = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  img.onload = function() {
+    URL.revokeObjectURL(objectUrl);
+    const MAX = 800;
+    const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width  = Math.round(img.width  * scale);
+    canvas.height = Math.round(img.height * scale);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    const compressed = canvas.toDataURL('image/jpeg', 0.7);
+    if (!photoStates[id]) photoStates[id] = [];
+    photoStates[id].push(compressed);
+    renderPhotoPreview(id);
+    input.value = '';
+  };
+  img.onerror = function() { alert('Could not read image. Please try again.'); };
+  img.src = objectUrl;
+}
+
+function renderPhotoPreview(id) {
+  const container = document.getElementById('photo-preview-' + id);
+  if (!container) return;
+  const photos = photoStates[id] || [];
+  container.innerHTML = photos.map((src, i) => `
+    <div class="photo-preview-item">
+      <img src="${src}" onclick="openPhotoViewer('${id}',${i})">
+      <button class="photo-remove" onclick="removePhoto('${id}',${i})">×</button>
+    </div>`).join('');
+}
+
+function removePhoto(id, idx) {
+  if (photoStates[id]) { photoStates[id].splice(idx, 1); renderPhotoPreview(id); }
+}
+
+function openPhotoViewer(id, idx) {
+  const src = (photoStates[id] || [])[idx];
+  if (!src) return;
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  ov.innerHTML = `<img src="${src}" style="max-width:92vw;max-height:88vh;border-radius:8px;">`;
+  ov.onclick = () => ov.remove();
+  document.body.appendChild(ov);
+}
+
+// ══════════════════════════════════════════════════════
+// CHECKLIST EDITOR
+// ══════════════════════════════════════════════════════
+let editorMode = 'stock';
+
+function getEditorChecks() { return editorMode === 'cctv' ? CCTV_CHECKS : CHECKS; }
+
+function openEditorForCurrentAudit() {
+  goTab('editor', document.querySelectorAll('.tab')[1]);
+  setEditorMode(currentAuditType === 'cctv' ? 'cctv' : 'stock');
+}
+
+function setEditorMode(mode) {
+  editorMode = mode;
+  document.getElementById('editor-btn-stock').className = mode === 'stock' ? 'active-stock' : '';
+  document.getElementById('editor-btn-cctv').className  = mode === 'cctv'  ? 'active-cctv'  : '';
+  renderEditor();
+}
+
+function renderEditor() {
+  const checks = getEditorChecks();
+  const list = document.getElementById('editor-list');
+  list.innerHTML = checks.map((c,i)=>`
+    <div class="editor-row">
+      <div class="row-num">${String(i+1).padStart(2,'0')}</div>
+      <div class="row-content">
+        <div class="row-label">${c.label}</div>
+        <div class="row-sub">${c.sub||'<em style="color:var(--text-faint);">No description</em>'}</div>
+      </div>
+      <div class="row-actions">
+        <button class="btn-icon edit-btn" title="Edit" onclick="openCheckModal(${i})">&#9998;</button>
+        <button class="btn-icon del" title="Delete" onclick="deleteCheck(${i})">&#10005;</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('check-count-lbl').textContent = checks.length+' checks';
+  document.getElementById('edit-count').textContent = CHECKS.length;
+}
+
+function deleteCheck(idx) {
+  const checks = getEditorChecks();
+  if (!confirm('Delete "'+checks[idx].label+'"?')) return;
+  checks.splice(idx,1); renderEditor();
+}
+
+function saveChecklist() {
+  if (editorMode === 'cctv') {
+    localStorage.setItem('kfl_cctv_checks', JSON.stringify(CCTV_CHECKS));
+  } else {
+    localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
+    if (SHEETS_URL) {
+      fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'saveChecklist', checks:CHECKS})})
+        .catch(()=>{});
+    }
+  }
+  buildChecklist();
+  showToast('editor-toast');
+  setTimeout(()=>goTab('form',document.querySelectorAll('.tab')[0]),700);
+}
+
+function openCheckModal(idx) {
+  const checks = getEditorChecks();
+  checkModalIdx = idx;
+  document.getElementById('check-modal-title').textContent = idx>=0?'Edit Checklist Item':'Add New Checklist Item';
+  document.getElementById('m-label').value = idx>=0?checks[idx].label:'';
+  document.getElementById('m-sub').value   = idx>=0?checks[idx].sub:'';
+  document.getElementById('check-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('m-label').focus(),80);
+}
+
+function closeCheckModal() { document.getElementById('check-modal').classList.remove('open'); }
+
+function saveCheckModal() {
+  const checks = getEditorChecks();
+  const label = document.getElementById('m-label').value.trim();
+  const sub   = document.getElementById('m-sub').value.trim();
+  if (!label) { document.getElementById('m-label').focus(); return; }
+  if (checkModalIdx>=0) { checks[checkModalIdx].label=label; checks[checkModalIdx].sub=sub; }
+  else checks.push({id:'c_'+Date.now(), label, sub});
+  closeCheckModal(); renderEditor();
+}
+
+// ══════════════════════════════════════════════════════
+// MANAGE LISTS PANEL
+// ══════════════════════════════════════════════════════
+function renderListsPanel() {
+  renderTagList('auditor');
+  renderTagList('cluster');
+  renderTagList('area');
+  renderTagList('outlet');
+}
+
+function renderTagList(key) {
+  const labels = {auditor:'Auditor Names', cluster:'Cluster Managers', area:'Area Managers', outlet:'Outlets'};
+  const container = document.getElementById(key+'-tags');
+  const cnt = document.getElementById(key+'-cnt');
+  container.innerHTML = LISTS[key].map((v,i)=>`
+    <div class="list-tag">
+      <span>${v}</span>
+      <button class="del-tag" title="Remove" onclick="removeListItem('${key}',${i})">&#10005;</button>
+    </div>`).join('');
+  if (cnt) cnt.textContent = LISTS[key].length+' items';
+}
+
+function addListItem(key) {
+  const input = document.getElementById('add-'+key);
+  const val = input.value.trim();
+  if (!val) { input.focus(); return; }
+  if (LISTS[key].includes(val)) { alert('"'+val+'" already exists in this list.'); return; }
+  LISTS[key].push(val);
+  input.value = '';
+  saveLists();
+  renderTagList(key);
+  populateAllSelects();
+}
+
+function removeListItem(key, idx) {
+  if (!confirm('Remove "'+LISTS[key][idx]+'" from the list?')) return;
+  LISTS[key].splice(idx,1);
+  saveLists();
+  renderTagList(key);
+  populateAllSelects();
+}
+
+function applyLists() {
+  populateAllSelects();
+  showToast('lists-toast');
+  setTimeout(()=>goTab('form',document.querySelectorAll('.tab')[0]),700);
+}
+
+// ══════════════════════════════════════════════════════
+// QUICK ADD (+ button next to dropdown in form)
+// ══════════════════════════════════════════════════════
+const quickLabels = {auditor:'Auditor Name', outlet:'Outlet Name', cluster:'Cluster Manager Name', area:'Area Manager Name'};
+const quickPlaceholders = {auditor:'e.g. Nagaraj', outlet:'e.g. BLR - NEW MALL NAME', cluster:'e.g. Suresh', area:'e.g. Ravi Kumar'};
+
+function quickAdd(key) {
+  quickModalKey = key;
+  document.getElementById('quick-modal-title').textContent = 'Add New ' + quickLabels[key];
+  document.getElementById('quick-modal-label').innerHTML = quickLabels[key] + ' <span class="req">*</span>';
+  document.getElementById('q-value').value = '';
+  document.getElementById('q-value').placeholder = quickPlaceholders[key];
+  document.getElementById('quick-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('q-value').focus(),80);
+}
+
+function closeQuickModal() { document.getElementById('quick-modal').classList.remove('open'); }
+
+function saveQuickModal() {
+  const val = document.getElementById('q-value').value.trim();
+  if (!val) { document.getElementById('q-value').focus(); return; }
+  if (LISTS[quickModalKey].includes(val)) { alert('"'+val+'" already exists.'); return; }
+  LISTS[quickModalKey].push(val);
+  saveLists();
+  populateAllSelects();
+  // auto-select the new value
+  const selId = {auditor:'f-auditor', outlet:'f-outlet', cluster:'f-cluster', area:'f-area'}[quickModalKey];
+  document.getElementById(selId).value = val;
+  closeQuickModal();
+}
+
+// ══════════════════════════════════════════════════════
+// SUBMIT AUDIT
+// ══════════════════════════════════════════════════════
+function submitAudit() {
+  const auditor = document.getElementById('f-auditor').value;
+  const outlet  = document.getElementById('f-outlet').value;
+  const date    = document.getElementById('f-date').value;
+  const cluster = document.getElementById('f-cluster').value;
+  if (!auditor||!outlet||!date||!cluster) { alert('Please fill Auditor, Outlet, Date, and Cluster Manager.'); return; }
+  const activeChecks = getActiveChecks();
+  const issues = activeChecks.filter(c=>checkStates[c.id]==='issue').map(c=>{const t=document.getElementById('it-'+c.id);return{label:c.label,note:t?t.value.trim():'',photos:photoStates[c.id]||[]};});
+  const answered = activeChecks.filter(c=>checkStates[c.id]).length;
+  const ok = activeChecks.filter(c=>checkStates[c.id]==='ok').length;
+  const score = answered ? Math.round((ok/answered)*100) : null;
+  const isSurprise = currentAuditType === 'surprise';
+  const isCctv = currentAuditType === 'cctv';
+  const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value,sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  submissions.push(entry);
+  localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
+  const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
+  syncToSheet(sheetsEntry);
+  const cnt=submissions.length;
+  document.getElementById('tab-count').textContent=cnt;
+  document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
+  showToast('toast');
+  resetForm(true);
+  goTab('summary',document.querySelectorAll('.tab')[3]);
+}
+
+function resetForm(silent) {
+  if (!silent&&!confirm('Clear all form fields?')) return;
+  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  for(const k in checkStates)delete checkStates[k];
+  for(const k in photoStates)delete photoStates[k];
+  document.querySelectorAll('.tog button').forEach(b=>b.classList.remove('ok','issue'));
+  document.querySelectorAll('.issue-wrap').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.issue-wrap input[type="text"]').forEach(el=>el.value='');
+  document.querySelectorAll('.photo-preview').forEach(el=>el.innerHTML='');
+  setAuditType('stock');
+}
+
+// ══════════════════════════════════════════════════════
+// SUMMARY
+// ══════════════════════════════════════════════════════
+let displaySubs = [];
+
+async function fetchFromSheet() {
+  const url = SHEETS_URL + (SHEETS_URL.includes('?') ? '&' : '?') + '_t=' + Date.now();
+  const res = await fetch(url, {redirect: 'follow', cache: 'no-store'});
+  const json = await res.json();
+  return (json.rows || []).filter(r => !r._test).reverse();
+}
+
+async function renderSummary() {
+  const loading = document.getElementById('sum-loading');
+  const empty   = document.getElementById('sum-empty');
+  const content = document.getElementById('sum-content');
+  const source  = document.getElementById('sum-source');
+  const refreshBtn = document.getElementById('refresh-btn');
+
+  if (SHEETS_URL) {
+    loading.style.display = 'block';
+    empty.style.display   = 'none';
+    content.style.display = 'none';
+    try {
+      displaySubs = await fetchFromSheet();
+      localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
+      source.textContent = '— from Google Sheets';
+      refreshBtn.style.display = 'inline-flex';
+    } catch(err) {
+      displaySubs = [...submissions].reverse();
+      source.textContent = '— Sheets unreachable, showing local';
+      refreshBtn.style.display = 'inline-flex';
+    }
+  } else {
+    displaySubs = [...submissions].reverse();
+    source.textContent = '';
+    refreshBtn.style.display = 'none';
+  }
+
+  loading.style.display = 'none';
+
+  if (!displaySubs.length) {
+    empty.style.display   = 'block';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display   = 'none';
+  content.style.display = 'block';
+
+  const total = displaySubs.length;
+  const clean = displaySubs.filter(s => !s.issues.length).length;
+  const totalIssues = displaySubs.reduce((a,s) => a + s.issues.length, 0);
+  const scores = displaySubs.filter(s => s.score !== null).map(s => s.score);
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+
+  document.getElementById('metric-row').innerHTML =
+    `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
+    `<div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+
+  const ff = document.getElementById('f-filter');
+  const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
+  ff.innerHTML = '<option value="">All auditors</option>' + auditors.map(v=>`<option>${v}</option>`).join('');
+  // reset filters
+  ['f-search','f-qtr-filter','f-month-filter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderTable();
+  renderGapAnalysis(displaySubs);
+}
+
+function getFilteredRows() {
+  const search    = (document.getElementById('f-search')||{value:''}).value.toLowerCase();
+  const auditor   = document.getElementById('f-filter').value;
+  const qtr       = document.getElementById('f-qtr-filter').value;
+  const month     = document.getElementById('f-month-filter').value;
+  const auditType = (document.getElementById('f-audit-type-filter')||{value:''}).value;
+  return displaySubs.filter(s => {
+    if (search    && !(s.outlet||'').toLowerCase().includes(search)) return false;
+    if (auditor   && s.auditor !== auditor) return false;
+    if (qtr       && s.qtr !== qtr) return false;
+    if (month     && s.month !== month) return false;
+    if (auditType && (s.auditType||'stock') !== auditType) return false;
+    return true;
+  });
+}
+
+function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
+
+function renderTable() {
+  const rows = getFilteredRows();
+  if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}
+</td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button></td></tr>`;}).join('')}</tbody>`;
+}
+
+function downloadPDF(idx) {
+  const s = displaySubs[idx];
+  const sc = s.score !== null && s.score !== '' ? Number(s.score) : null;
+  const scColor = sc === null ? '#888' : sc >= 80 ? '#3B6D11' : sc >= 60 ? '#854F0B' : '#A32D2D';
+  const scBg    = sc === null ? '#eee'  : sc >= 80 ? '#EAF3DE' : sc >= 60 ? '#FAEEDA' : '#FCEBEB';
+  const issueIds = new Set(s.issues.map(i => i.label));
+  const spct = s.spct ? String(s.spct).replace(/%$/,'') + '%' : '—';
+  const spctNum = parseFloat(s.spct) || 0;
+  const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
+
+  const pdfChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
+  const checklistRows = pdfChecks.map(c => {
+    const issue = s.issues.find(i => i.label === c.label);
+    if (issue) {
+      return `<tr style="background:#FCEBEB;">
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:13px;font-weight:500;color:#1A1A18;">${c.label}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;"><span style="background:#A32D2D;color:#fff;border-radius:4px;padding:2px 10px;font-size:11px;font-weight:600;">ISSUE FOUND</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid #F7C1C1;font-size:12px;color:#A32D2D;">${issue.note || '—'}${(issue.photos&&issue.photos.length)?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${issue.photos.map(p=>`<img src="${p}" style="height:72px;width:auto;border-radius:4px;border:1px solid #F7C1C1;object-fit:cover;">`).join('')}</div>`:''}</td>
+      </tr>`;
+    } else {
+      return `<tr style="background:#fff;">
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:13px;color:#1A1A18;">${c.label}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;"><span style="background:#EAF3DE;color:#3B6D11;border-radius:4px;padding:2px 10px;font-size:11px;font-weight:600;">NO ISSUE</span></td>
+        <td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#aaa;">—</td>
+      </tr>`;
+    }
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Audit Report — ${s.outlet}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:13px;color:#1A1A18;background:#fff;padding:32px;}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1A1A18;}
+    .brand{font-size:11px;font-weight:700;letter-spacing:1px;color:#888;margin-bottom:4px;}
+    .outlet{font-size:22px;font-weight:700;color:#1A1A18;}
+    .meta{font-size:12px;color:#666;margin-top:4px;}
+    .metrics{display:flex;gap:14px;margin-bottom:24px;}
+    .metric-box{flex:1;border-radius:8px;padding:14px 16px;border:1px solid #ddd;}
+    .metric-box .lbl{font-size:10px;font-weight:700;letter-spacing:0.5px;color:#888;text-transform:uppercase;margin-bottom:4px;}
+    .metric-box .val{font-size:22px;font-weight:700;}
+    .score-box{display:inline-flex;align-items:center;gap:16px;background:${scBg};border:1px solid ${scColor}33;border-radius:8px;padding:14px 20px;margin-bottom:24px;width:100%;}
+    .score-num{font-size:36px;font-weight:700;color:${scColor};}
+    .score-detail{font-size:13px;color:#555;}
+    .issues-section{margin-bottom:24px;}
+    .section-title{font-size:12px;font-weight:700;letter-spacing:0.5px;color:#888;text-transform:uppercase;margin-bottom:10px;}
+    .issue-item{background:#FCEBEB;border:1px solid #F7C1C1;border-radius:6px;padding:10px 14px;margin-bottom:8px;}
+    .issue-label{font-size:13px;font-weight:600;color:#A32D2D;}
+    .issue-note{font-size:12px;color:#666;margin-top:3px;}
+    table{width:100%;border-collapse:collapse;border:1px solid #eee;border-radius:8px;overflow:hidden;}
+    thead tr{background:#1A1A18;}
+    thead th{padding:9px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.5px;color:#E8E6DF;text-transform:uppercase;}
+    @media print{body{padding:16px;} .no-print{display:none;}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':(s.auditType||'stock')==='cctv'?'CCTV SURVEILLANCE AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
+      <div class="outlet">${s.outlet}</div>
+      <div class="meta">Auditor: <strong>${s.auditor}</strong> &nbsp;|&nbsp; Date: <strong>${s.date}</strong> &nbsp;|&nbsp; Cluster: <strong>${s.cluster}</strong>${s.area ? ' &nbsp;|&nbsp; Area: <strong>'+s.area+'</strong>' : ''}</div>
+      <div class="meta" style="margin-top:2px;">Quarter: <strong>${s.qtr||'—'}</strong> &nbsp;|&nbsp; Month: <strong>${s.month||'—'}</strong></div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:#aaa;">${s.ts||''}</div>
+  </div>
+
+  ${(s.auditType||'stock')==='cctv'?`
+  <div class="metrics">
+    <div class="metric-box" style="background:#F3E8FF;border-color:#D8B4FE;">
+      <div class="lbl">Audit Type</div>
+      <div class="val" style="color:#6B21A8;font-size:16px;">📹 CCTV Surveillance</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Watched Date</div>
+      <div class="val" style="color:#1A1A18;font-size:16px;">${s.watchedDate||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F3E8FF;border-color:#D8B4FE;">
+      <div class="lbl">Watch Type</div>
+      <div class="val" style="color:#6B21A8;font-size:16px;">${s.watchType||'—'}</div>
+    </div>
+  </div>`:`
+  <div class="metrics">
+    <div class="metric-box" style="background:${spctNum<0?'#FCEBEB':spctNum>0?'#FAEEDA':'#EAF3DE'};border-color:${spctNum<0?'#F7C1C1':spctNum>0?'#FAC775':'#C0DD97'};">
+      <div class="lbl">Shrinkage %</div>
+      <div class="val" style="color:${spctColor};">${spct}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Shrinkage Value (₹)</div>
+      <div class="val" style="color:#1A1A18;">${s.sval||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Shrinkage Qty</div>
+      <div class="val" style="color:#1A1A18;">${s.sqty||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Store Sale (₹)</div>
+      <div class="val" style="color:#1A1A18;">${s.sale||'—'}</div>
+    </div>
+  </div>`}
+
+  <div class="score-box">
+    <div class="score-num">${sc !== null ? sc + '%' : '—'}</div>
+    <div class="score-detail">
+      <div style="font-size:15px;font-weight:600;color:${scColor};">${sc===null?'Not scored':sc>=80?'Good Standing':sc>=60?'Needs Attention':'Critical'}</div>
+      <div style="color:#888;margin-top:2px;">${s.answered} of ${pdfChecks.length} points answered &nbsp;|&nbsp; ${s.issues.length} issue${s.issues.length!==1?'s':''} found</div>
+    </div>
+  </div>
+
+  ${s.issues.length > 0 ? `<div class="issues-section">
+    <div class="section-title">Issues Found (${s.issues.length})</div>
+    ${s.issues.map(i=>`<div class="issue-item"><div class="issue-label">↳ ${i.label}</div>${i.note?`<div class="issue-note">${i.note}</div>`:''
+    }${(i.photos&&i.photos.length)?`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${i.photos.map(p=>`<img src="${p}" style="height:100px;width:auto;border-radius:5px;border:1px solid #F7C1C1;object-fit:cover;">`).join('')}</div>`:''}</div>`).join('')}
+  </div>` : `<div style="background:#EAF3DE;border:1px solid #C0DD97;border-radius:8px;padding:14px 20px;margin-bottom:24px;color:#3B6D11;font-weight:600;">✓ No issues found — Clean audit</div>`}
+
+  <div class="section-title">Full Checklist</div>
+  <table>
+    <thead><tr><th>Checklist Item</th><th>Status</th><th>Remarks</th></tr></thead>
+    <tbody>${checklistRows}</tbody>
+  </table>
+
+  <div style="margin-top:24px;text-align:center;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:14px;">
+    Kushal's Fashion Jewellery — Confidential Audit Report &nbsp;|&nbsp; Generated ${new Date().toLocaleString('en-IN')}
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+function renderGapAnalysis(rows) {
+  const card = document.getElementById('gap-card');
+  if (!rows.length) { card.style.display='none'; return; }
+  card.style.display='block';
+
+  // Issue frequency
+  const issueCounts = {};
+  rows.forEach(s => s.issues.forEach(i => { issueCounts[i.label] = (issueCounts[i.label]||0)+1; }));
+  const sortedIssues = Object.entries(issueCounts).sort((a,b)=>b[1]-a[1]);
+  const maxIssue = sortedIssues[0]?.[1] || 1;
+
+  // Store-wise issue count
+  const storeCounts = {};
+  rows.forEach(s => { if (s.issues.length) storeCounts[s.outlet] = (storeCounts[s.outlet]||0)+s.issues.length; });
+  const sortedStores = Object.entries(storeCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const maxStore = sortedStores[0]?.[1] || 1;
+
+  document.getElementById('gap-content').innerHTML = `
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Most Common Issues</div>
+      ${sortedIssues.length ? sortedIssues.map(([label,cnt])=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+            <span style="color:var(--text);font-weight:500;">${label}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--red);font-weight:600;">${cnt}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;">
+            <div style="height:5px;border-radius:3px;background:var(--red);width:${Math.round(cnt/maxIssue*100)}%;"></div>
+          </div>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No issues found.</p>'}
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">Stores with Most Issues</div>
+      ${sortedStores.length ? sortedStores.map(([outlet,cnt])=>`
+        <div style="margin-bottom:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;">
+            <span style="color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${outlet}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--amber);font-weight:600;flex-shrink:0;margin-left:8px;">${cnt} issue${cnt>1?'s':''}</span>
+          </div>
+          <div style="height:5px;background:var(--border);border-radius:3px;">
+            <div style="height:5px;border-radius:3px;background:var(--amber);width:${Math.round(cnt/maxStore*100)}%;"></div>
+          </div>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No issues found.</p>'}
+    </div>`;
+}
+
+function switchSubTab(tab) {
+  const isAll = tab === 'all';
+  document.getElementById('sub-view-all').style.display = isAll ? '' : 'none';
+  document.getElementById('sub-view-shrinkage').style.display = isAll ? 'none' : '';
+  document.getElementById('sub-tab-all').style.borderBottomColor = isAll ? 'var(--accent)' : 'transparent';
+  document.getElementById('sub-tab-all').style.color = isAll ? 'var(--text)' : 'var(--text-muted)';
+  document.getElementById('sub-tab-all').style.fontWeight = isAll ? '600' : '500';
+  document.getElementById('sub-tab-shrinkage').style.borderBottomColor = isAll ? 'transparent' : 'var(--accent)';
+  document.getElementById('sub-tab-shrinkage').style.color = isAll ? 'var(--text-muted)' : 'var(--text)';
+  document.getElementById('sub-tab-shrinkage').style.fontWeight = isAll ? '500' : '600';
+  if (!isAll) renderShrinkageTable();
+}
+
+function getShrinkageRows() {
+  const search = (document.getElementById('sh-search')?.value || '').toLowerCase();
+  const qtr    = document.getElementById('sh-qtr')?.value || '';
+  const month  = document.getElementById('sh-month')?.value || '';
+  return displaySubs.filter(s =>
+    (s.auditType||'stock') === 'stock' &&
+    (s.spct || s.sval || s.sqty || s.sale) &&
+    (!search || (s.outlet||'').toLowerCase().includes(search)) &&
+    (!qtr    || s.qtr === qtr) &&
+    (!month  || s.month === month)
+  );
+}
+
+function renderShrinkageTable() {
+  const rows = getShrinkageRows();
+  const tbl = document.getElementById('shrinkage-table');
+  if (!rows.length) {
+    tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
+    return;
+  }
+  tbl.innerHTML = `<thead><tr>
+    <th>Outlet Name</th><th>Audit Date</th><th>Cluster Manager</th><th>Area Manager</th>
+    <th>Quarter</th><th>Shrinkage %</th><th>Shrinkage Value</th><th>Shrinkage Qty</th><th>Store Sale</th>
+  </tr></thead><tbody>${rows.map(s => `<tr>
+    <td><strong style="font-size:13px;">${s.outlet||'—'}</strong></td>
+    <td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date||'—'}</td>
+    <td>${s.cluster||'—'}</td>
+    <td>${s.area||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.qtr||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-weight:600;color:${s.spct&&parseFloat(s.spct)>0?'var(--red)':'var(--green)'};">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sval||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sqty||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;">${s.sale||'—'}</td>
+  </tr>`).join('')}</tbody>`;
+}
+
+function downloadShrinkageCSV() {
+  const rows = getShrinkageRows();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const headers = ['Outlet Name','Audit Date','Cluster Manager','Area Manager','Quarter',
+    'Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale'].map(escape).join(',');
+  const csvRows = [headers, ...rows.map(s => [
+    escape(s.outlet), escape(s.date), escape(s.cluster), escape(s.area), escape(s.qtr),
+    escape(s.spct?String(s.spct).replace(/%$/,'')+'%':''),
+    escape(s.sval), escape(s.sqty), escape(s.sale)
+  ].join(','))];
+  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const qtr   = document.getElementById('sh-qtr')?.value || '';
+  const month = document.getElementById('sh-month')?.value || '';
+  const suffix = [month, qtr].filter(Boolean).join('-') || 'all';
+  a.download = `kushal-shrinkage-${suffix}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+function downloadCSV() {
+  const rows = getFilteredRows();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
+
+  const hasStockRows = rows.some(s => (s.auditType||'stock') === 'stock');
+  const hasCctvRows  = rows.some(s => (s.auditType||'stock') === 'cctv');
+
+  const baseHeaders = ['Audit Type','Date','Outlet','Auditor','Cluster','Area','Quarter','Month'];
+  if (hasCctvRows)  baseHeaders.push('Watched Date','Watch Type');
+  if (hasStockRows) baseHeaders.push('Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale');
+  baseHeaders.push('Score %','Answered');
+
+  // Collect all unique checklist labels across all rows (preserving order: stock first, then cctv)
+  const seenLabels = new Set();
+  const allCheckLabels = [];
+  rows.forEach(s => {
+    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
+    rowChecks.forEach(c => { if (!seenLabels.has(c.label)) { seenLabels.add(c.label); allCheckLabels.push(c.label); } });
+  });
+
+  const headers = [...baseHeaders, ...allCheckLabels].map(escape).join(',');
+
+  const csvRows = [headers, ...rows.map(s => {
+    const isCctvRow = (s.auditType||'stock') === 'cctv';
+    const rowChecks = s.checklistSnapshot || (isCctvRow ? CCTV_CHECKS : CHECKS);
+    const rowLabels = new Set(rowChecks.map(c => c.label));
+    const issueMap = {};
+    s.issues.forEach(i => { issueMap[i.label] = i.note || ''; });
+
+    const base = [escape(s.auditType||'stock'), s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area), s.qtr, s.month];
+    if (hasCctvRows)  base.push(escape(s.watchedDate||''), escape(s.watchType||''));
+    const noShrinkage = (s.auditType||'stock') !== 'stock';
+    if (hasStockRows) base.push(noShrinkage?'':s.spct, noShrinkage?'':s.sval, noShrinkage?'':s.sqty, noShrinkage?'':s.sale);
+    base.push(s.score, s.answered);
+
+    const checks = allCheckLabels.map(label => {
+      if (!rowLabels.has(label)) return escape('N/A');
+      if (label in issueMap) return escape('Issue Found' + (issueMap[label] ? ': ' + issueMap[label] : ''));
+      return escape('No Issue');
+    });
+    return [...base, ...checks].join(',');
+  })];
+
+  const blob = new Blob(['\uFEFF' + csvRows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const qtr   = document.getElementById('f-qtr-filter').value;
+  const month = document.getElementById('f-month-filter').value;
+  const suffix = [month, qtr].filter(Boolean).join('-') || 'all';
+  a.download = `kushal-audit-${suffix}-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+function showToast(id) {
+  const t=document.getElementById(id); t.style.display='block';
+  setTimeout(()=>t.style.display='none',3500);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(mo=>{
+  mo.addEventListener('click',e=>{if(e.target===mo){mo.classList.remove('open'); document.getElementById('sheets-status').style.display='none';}});
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
+  if(e.key==='Enter'){
+    if(document.getElementById('check-modal').classList.contains('open')) saveCheckModal();
+    if(document.getElementById('quick-modal').classList.contains('open')) saveQuickModal();
+  }
+});
+
+// ══════════════════════════════════════════════════════
+// GOOGLE SHEETS SYNC
+// ══════════════════════════════════════════════════════
+let SHEETS_URL = localStorage.getItem('kfl_sheets_url') || 'https://script.google.com/macros/s/AKfycbw93LyvGY9z8tcJBNmyHyKEOzfpSy6wtU286nHs2UErYBuIJOFpBSSDExunCIbqb7A4Cg/exec';
+
+function updateSheetsIndicator() {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sheets-btn-label');
+  if (SHEETS_URL) {
+    dot.className = 'sync-dot ok';
+    lbl.textContent = '☁ Sheets';
+  } else {
+    dot.className = 'sync-dot';
+    lbl.textContent = '☁ Sheets';
+  }
+}
+
+function openSheetsModal() {
+  document.getElementById('sheets-url-input').value = SHEETS_URL;
+  document.getElementById('sheets-status').style.display = 'none';
+  document.getElementById('sheets-modal').classList.add('open');
+}
+
+function closeSheetsModal() {
+  document.getElementById('sheets-modal').classList.remove('open');
+}
+
+function saveSheetsUrl() {
+  const url = document.getElementById('sheets-url-input').value.trim();
+  if (!url) { document.getElementById('sheets-url-input').focus(); return; }
+  const statusEl = document.getElementById('sheets-status');
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--amber)';
+  statusEl.textContent = '⏳ Testing connection…';
+  const testPayload = {auditor:'TEST',outlet:'TEST',date:'',cluster:'',area:'',qtr:'',month:'',spct:'',sval:'',sqty:'',sale:'',score:null,answered:0,issues:[],_test:true};
+  fetch(url, {method:'POST', body:JSON.stringify(testPayload)})
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        SHEETS_URL = url;
+        localStorage.setItem('kfl_sheets_url', url);
+        updateSheetsIndicator();
+        statusEl.style.color = 'var(--green)';
+        statusEl.textContent = '✓ Connected! Your audits will now sync automatically.';
+        setTimeout(closeSheetsModal, 1800);
+      } else {
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = '✕ Unexpected response. Check your Apps Script and try again.';
+      }
+    })
+    .catch(() => {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '✕ Could not connect. Make sure access is set to "Anyone" when deploying.';
+    });
+}
+
+function copyScript() {
+  const text = document.getElementById('apps-script-code').innerText;
+  navigator.clipboard.writeText(text).then(function() {
+    const btn = document.getElementById('copy-script-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+function clearSheetsUrl() {
+  if (!confirm('Disconnect Google Sheets backup?')) return;
+  SHEETS_URL = '';
+  localStorage.removeItem('kfl_sheets_url');
+  updateSheetsIndicator();
+  closeSheetsModal();
+}
+
+function syncToSheet(entry) {
+  if (!SHEETS_URL) return;
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot spin';
+  fetch(SHEETS_URL, {method:'POST', body:JSON.stringify(entry)})
+    .then(r => r.json())
+    .then(data => {
+      dot.className = data.status === 'ok' ? 'sync-dot ok' : 'sync-dot err';
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 3000);
+    })
+    .catch(() => {
+      dot.className = 'sync-dot err';
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 5000);
+    });
+}
+
+// ══════════════════════════════════════════════════════
+// EDIT & DELETE
+// ══════════════════════════════════════════════════════
+let editIdx = -1;
+let editCheckStates = {};
+let editChecks = [];
+
+function openEditModal(idx) {
+  editIdx = idx;
+  const s = displaySubs[idx];
+  // Populate selects from LISTS
+  ['e-auditor','e-outlet','e-cluster','e-area'].forEach(id => {
+    const map = {'e-auditor':'auditor','e-outlet':'outlet','e-cluster':'cluster','e-area':'area'};
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">Select...</option>` + (LISTS[map[id]]||[]).map(v=>`<option${v===s[map[id]]?' selected':''}>${v}</option>`).join('');
+    el.value = s[map[id]] || '';
+  });
+  document.getElementById('e-date').value = s.date || '';
+  document.getElementById('e-qtr').value = s.qtr || '';
+  document.getElementById('e-month').value = s.month || '';
+  document.getElementById('e-spct').value = s.spct || '';
+  document.getElementById('e-sval').value = s.sval || '';
+  document.getElementById('e-sqty').value = s.sqty || '';
+  document.getElementById('e-sale').value = s.sale || '';
+  // Build checklist states from issues
+  const resolvedType = (s.auditType || 'stock').toLowerCase().trim();
+  const typeLabel = resolvedType === 'cctv' ? '📹 CCTV Audit' : resolvedType === 'surprise' ? '⚡ Surprise Audit' : '📦 Stock Audit';
+  document.getElementById('edit-modal-title').textContent = 'Edit Submission — ' + typeLabel;
+  document.getElementById('edit-modal-type-label').textContent = resolvedType + (s.checklistSnapshot ? ' (snapshot:'+s.checklistSnapshot.length+')' : ' (no snapshot)');
+  editChecks = s.checklistSnapshot && s.checklistSnapshot.length
+    ? s.checklistSnapshot
+    : resolvedType === 'cctv' ? CCTV_CHECKS : CHECKS;
+  editCheckStates = {};
+  editChecks.forEach(c => { editCheckStates[c.id || c.label] = 'ok'; });
+  s.issues.forEach(i => {
+    const check = editChecks.find(c => c.label === i.label);
+    if (check) {
+      editCheckStates[check.id || check.label] = 'issue';
+      editCheckStates[(check.id || check.label)+'_note'] = i.note || '';
+    }
+  });
+  // Render checklist
+  const body = document.getElementById('edit-checklist-body');
+  body.innerHTML = editChecks.map(c => {
+    const key = c.id || c.label;
+    const isIssue = editCheckStates[key] === 'issue';
+    return `<div class="check-row">
+      <div class="check-info">
+        <div class="check-q">${c.label}</div>
+        <div class="issue-wrap" id="eib-${key}" style="display:${isIssue?'block':'none'}">
+          <input type="text" placeholder="Describe the issue..." id="eit-${key}" value="${(editCheckStates[key+'_note']||'').replace(/"/g,'&quot;')}">
+        </div>
+      </div>
+      <div class="tog">
+        <button onclick="setEditCheck('${key}','ok',this)" class="${!isIssue?'ok':''}">No issue</button>
+        <button onclick="setEditCheck('${key}','issue',this)" class="${isIssue?'issue':''}">Issue found</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function setEditCheck(key, val, btn) {
+  btn.closest('.tog').querySelectorAll('button').forEach(b=>b.classList.remove('ok','issue'));
+  btn.classList.add(val);
+  editCheckStates[key] = val;
+  const ib = document.getElementById('eib-'+key);
+  if (ib) ib.style.display = val==='issue'?'block':'none';
+}
+
+function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function saveEdit() {
+  const s = displaySubs[editIdx];
+  const auditor = document.getElementById('e-auditor').value;
+  const outlet  = document.getElementById('e-outlet').value;
+  const date    = document.getElementById('e-date').value;
+  const cluster = document.getElementById('e-cluster').value;
+  if (!auditor||!outlet||!date||!cluster) { alert('Please fill Auditor, Outlet, Date and Cluster.'); return; }
+  const issues = editChecks.filter(c => editCheckStates[c.id||c.label]==='issue').map(c => {
+    const key = c.id||c.label;
+    const el = document.getElementById('eit-'+key);
+    return {label:c.label, note:el?el.value.trim():''};
+  });
+  const answered = editChecks.filter(c => editCheckStates[c.id||c.label]).length;
+  const ok = editChecks.filter(c => editCheckStates[c.id||c.label]==='ok').length;
+  const score = answered ? Math.round((ok/answered)*100) : null;
+  const updated = {
+    ...s,
+    auditor, outlet, date, cluster,
+    area:  document.getElementById('e-area').value,
+    qtr:   document.getElementById('e-qtr').value,
+    month: document.getElementById('e-month').value,
+    spct:  document.getElementById('e-spct').value,
+    sval:  document.getElementById('e-sval').value,
+    sqty:  document.getElementById('e-sqty').value,
+    sale:  document.getElementById('e-sale').value,
+    score, answered, issues
+  };
+  displaySubs[editIdx] = updated;
+  if (SHEETS_URL && s._row) {
+    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'update', rowIndex:s._row, ...updated})}).catch(()=>{});
+  }
+  closeEditModal();
+  renderTable();
+  renderGapAnalysis(getFilteredRows());
+}
+
+function deleteEntry(idx) {
+  const s = displaySubs[idx];
+  if (!confirm('Delete audit for "'+s.outlet+'" on '+s.date+'?')) return;
+  if (SHEETS_URL && s._row) {
+    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'delete', rowIndex:s._row})}).catch(()=>{});
+  }
+  displaySubs.splice(idx, 1);
+  localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
+  renderTable();
+  renderGapAnalysis(getFilteredRows());
+  // update metrics
+  const total = displaySubs.length;
+  const clean = displaySubs.filter(s=>!s.issues.length).length;
+  const totalIssues = displaySubs.reduce((a,s)=>a+s.issues.length,0);
+  const scores = displaySubs.filter(s=>s.score!==null).map(s=>s.score);
+  const avg = scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+  document.getElementById('metric-row').innerHTML=`<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div><div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div><div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div><div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+function fetchChecklistFromSheets() {
+  if (!SHEETS_URL) return;
+  fetch(SHEETS_URL + '?type=checklist', {cache:'no-store'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.checks && Array.isArray(data.checks) && data.checks.length > 0) {
+        CHECKS = data.checks;
+        localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
+        buildChecklist();
+      }
+    })
+    .catch(()=>{});
+}
+
+function fetchListsFromSheets() {
+  if (!SHEETS_URL) return;
+  fetch(SHEETS_URL + '?type=lists&_t=' + Date.now(), {cache:'no-store'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.lists && Object.keys(data.lists).length > 0) {
+        ['auditor','cluster','area','outlet'].forEach(k => {
+          if (Array.isArray(data.lists[k]) && data.lists[k].length > 0) LISTS[k] = data.lists[k];
+        });
+        localStorage.setItem('kfl_lists', JSON.stringify(LISTS));
+        populateAllSelects();
+        if (document.getElementById('lists-panel').classList.contains('active')) renderListsPanel();
+      }
+    })
+    .catch(()=>{});
+}
+
+buildChecklist();
+populateAllSelects();
+document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+updateSheetsIndicator();
+fetchChecklistFromSheets();
+fetchListsFromSheets();
+// restore submission count badge from localStorage
+(function(){
+  const cnt = submissions.length;
+  if (cnt > 0) {
+    document.getElementById('tab-count').textContent = cnt;
+    document.getElementById('top-badge').textContent = cnt + ' submission' + (cnt !== 1 ? 's' : '');
+  }
+})();
+</script>
+
+
+</body></html>
