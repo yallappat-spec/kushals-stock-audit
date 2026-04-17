@@ -1354,6 +1354,36 @@ async function fetchFromSheet() {
   return (json.rows || []).filter(r => !r._test).reverse();
 }
 
+function renderAllMetrics() {
+  const total = displaySubs.length;
+  const clean = displaySubs.filter(s => !s.issues.length).length;
+  const totalIssues = displaySubs.reduce((a,s) => a + s.issues.length, 0);
+  const scores = displaySubs.filter(s => s.score !== null).map(s => s.score);
+  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+  document.getElementById('metric-row').innerHTML =
+    `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
+    `<div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+}
+
+function renderGapMetrics() {}
+
+function renderShrinkageMetrics() {
+  const rows = getShrinkageRows();
+  const totalSval = rows.reduce((a,s) => a + (parseFloat(s.sval)||0), 0);
+  const totalSale = rows.reduce((a,s) => a + (parseFloat(s.sale)||0), 0);
+  const shrinkPct = totalSale ? ((totalSval / totalSale) * 100).toFixed(4) : null;
+  const clean = rows.filter(s => !s.issues.length).length;
+  const pctColor = shrinkPct !== null && parseFloat(shrinkPct) > 0 ? 'var(--red)' : 'var(--green)';
+  const valStr = totalSval ? '₹' + Math.abs(totalSval).toLocaleString('en-IN') : '—';
+  document.getElementById('metric-row').innerHTML =
+    `<div class="metric"><div class="metric-val">${rows.length}</div><div class="metric-lbl">Stores Audited</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:${pctColor};">${shrinkPct !== null ? shrinkPct+'%' : '—'}</div><div class="metric-lbl">Shrinkage %</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);font-size:${Math.abs(totalSval)>9999999?'20px':'28px'};">${valStr}</div><div class="metric-lbl">Shrinkage Value</div></div>`;
+}
+
 async function renderSummary() {
   const loading = document.getElementById('sum-loading');
   const empty   = document.getElementById('sum-empty');
@@ -1391,17 +1421,8 @@ async function renderSummary() {
   empty.style.display   = 'none';
   content.style.display = 'block';
 
-  const total = displaySubs.length;
-  const clean = displaySubs.filter(s => !s.issues.length).length;
-  const totalIssues = displaySubs.reduce((a,s) => a + s.issues.length, 0);
-  const scores = displaySubs.filter(s => s.score !== null).map(s => s.score);
-  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
-
-  document.getElementById('metric-row').innerHTML =
-    `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
-    `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
-    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
-    `<div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+  renderAllMetrics();
+  renderGapMetrics();
 
   const ff = document.getElementById('f-filter');
   const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
@@ -1622,7 +1643,7 @@ function switchSubTab(tab) {
   document.getElementById('sub-tab-shrinkage').style.borderBottomColor = isAll ? 'transparent' : 'var(--accent)';
   document.getElementById('sub-tab-shrinkage').style.color = isAll ? 'var(--text-muted)' : 'var(--text)';
   document.getElementById('sub-tab-shrinkage').style.fontWeight = isAll ? '500' : '600';
-  if (!isAll) renderShrinkageTable();
+  if (isAll) { renderAllMetrics(); } else { renderShrinkageTable(); }
 }
 
 function getShrinkageRows() {
@@ -1639,6 +1660,7 @@ function getShrinkageRows() {
 }
 
 function renderShrinkageTable() {
+  renderShrinkageMetrics();
   const rows = getShrinkageRows();
   const tbl = document.getElementById('shrinkage-table');
   if (!rows.length) {
