@@ -112,6 +112,7 @@
   .audit-type-toggle button.active-stock{background:var(--accent);color:var(--accent-text);}
   .audit-type-toggle button.active-surprise{background:#185FA5;color:#fff;}
   .audit-type-toggle button.active-cctv{background:#6B21A8;color:#fff;}
+  .audit-type-toggle button.active-ecommerce{background:#0F766E;color:#fff;}
 
   /* BUTTONS */
   .submit-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding-top:18px;border-top:1px solid var(--border);}
@@ -221,6 +222,7 @@
         <button id="btn-stock" class="active-stock" onclick="setAuditType('stock')">📦 Stock Audit</button>
         <button id="btn-surprise" onclick="setAuditType('surprise')">⚡ Surprise Audit</button>
         <button id="btn-cctv" onclick="setAuditType('cctv')">📹 CCTV Audit</button>
+        <button id="btn-ecommerce" onclick="setAuditType('ecommerce')">🛒 Ecommerce Packing</button>
       </div>
     </div>
 
@@ -257,6 +259,24 @@
             <option value="">Select...</option>
             <option value="Full">Full Watch</option>
             <option value="Random">Random Watch</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3" id="ecommerce-extra-row" style="display:none;">
+        <div class="field">
+          <label>Issue Details <span class="req">*</span></label>
+          <input type="text" id="f-ec-issue" placeholder="Describe the ecommerce issue...">
+        </div>
+        <div class="field">
+          <label>Order Number <span class="req">*</span></label>
+          <input type="text" id="f-ec-order" placeholder="e.g. ORD-12345">
+        </div>
+        <div class="field">
+          <label>Issue from Store? <span class="req">*</span></label>
+          <select id="f-ec-store-issue">
+            <option value="">Select...</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
           </select>
         </div>
       </div>
@@ -548,6 +568,7 @@
         <div class="audit-type-toggle">
           <button id="editor-btn-stock" class="active-stock" onclick="setEditorMode('stock')">📦 Stock / Surprise</button>
           <button id="editor-btn-cctv" onclick="setEditorMode('cctv')">📹 CCTV Audit</button>
+          <button id="editor-btn-ecommerce" onclick="setEditorMode('ecommerce')">🛒 Ecommerce Packing</button>
         </div>
       </div>
       <div class="info-pill">ⓘ Changes apply to all new audits. Past submissions are not affected.</div>
@@ -669,6 +690,7 @@
               <option value="stock">Stock Audit</option>
               <option value="surprise">Surprise Audit</option>
               <option value="cctv">CCTV Audit</option>
+              <option value="ecommerce">Ecommerce Packing</option>
             </select>
             <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
           </div>
@@ -778,26 +800,30 @@
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
-    sheet.getRange(d.rowIndex, 1, 1, 18).setValues([[
+    sheet.getRange(d.rowIndex, 1, 1, 21).setValues([[
       new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
       d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
       d.score, d.answered, d.issues.length,
       d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
-      d.auditType || 'stock', d.watchedDate || ''
+      d.auditType || 'stock', d.watchedDate || '',
+      d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || ''
     ]]);
     return ok();
   }
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(['Timestamp','Auditor','Outlet','Date','Cluster','Area',
       'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
-      'Store Sale','Score %','Answered','Issues Count','Issues Detail','Audit Type','Watched Date']);
+      'Store Sale','Score %','Answered','Issues Count','Issues Detail',
+      'Audit Type','Watched Date',
+      'EC Issue Details','EC Order Number','EC Store Issue']);
   }
   sheet.appendRow([
     new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
     d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
     d.score, d.answered, d.issues.length,
     d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
-    d.auditType || 'stock', d.watchedDate || ''
+    d.auditType || 'stock', d.watchedDate || '',
+    d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || ''
   ]);
   return ok();
 }
@@ -861,7 +887,10 @@ function doGet(e) {
       score: row[12] !== '' ? Number(row[12]) : null,
       answered: Number(row[13]), issues: issues,
       auditType: row[16] ? String(row[16]) : 'stock',
-      watchedDate: row[17] ? String(row[17]) : ''
+      watchedDate: row[17] ? String(row[17]) : '',
+      ecIssue: row[18] ? String(row[18]) : '',
+      ecOrder: row[19] ? String(row[19]) : '',
+      ecStoreIssue: row[20] ? String(row[20]) : ''
     };
   });
   return ContentService.createTextOutput(JSON.stringify({rows:rows}))
@@ -974,8 +1003,26 @@ const DEFAULT_CCTV_CHECKS = [
 
 let CCTV_CHECKS = JSON.parse(localStorage.getItem('kfl_cctv_checks') || 'null') || DEFAULT_CCTV_CHECKS;
 
+const DEFAULT_ECOMMERCE_CHECKS = [
+  {id:'ec_order_verify',   label:'Order items verified before packing',              sub:'Whether order items are verified against the order slip before packing'},
+  {id:'ec_packing_qual',   label:'Packing material quality adequate',                sub:'Whether packing material used is of adequate quality and in good condition'},
+  {id:'ec_product_tag',    label:'Product tags / labels intact',                     sub:'Whether product tags and labels are intact and undamaged before packing'},
+  {id:'ec_invoice',        label:'Invoice included in the package',                  sub:'Whether a printed invoice is included inside the package'},
+  {id:'ec_seal',           label:'Package properly sealed',                          sub:'Whether the package is properly sealed with tamper-evident tape or mechanism'},
+  {id:'ec_fragile',        label:'Fragile items wrapped with protective material',   sub:'Whether fragile items are wrapped with bubble wrap or protective material'},
+  {id:'ec_photo',          label:'Product photo taken before dispatch',              sub:'Whether a photograph of the packed product is taken before dispatch'},
+  {id:'ec_item_count',     label:'Item count matches order quantity',                sub:'Whether the quantity of items packed matches the order quantity'},
+  {id:'ec_dispatch_time',  label:'Dispatch within committed timeline',               sub:'Whether the order is dispatched within the committed SLA timeline'},
+  {id:'ec_return_process', label:'Return / exchange process followed',               sub:'Whether return and exchange requests are handled as per process'},
+  {id:'ec_packing_area',   label:'Packing area clean and organised',                 sub:'Whether the packing area is clean, organised, and free from clutter'},
+  {id:'ec_address_label',  label:'Correct address label on package',                 sub:'Whether the correct customer address label is affixed to the package'},
+];
+let ECOMMERCE_CHECKS = JSON.parse(localStorage.getItem('kfl_ecommerce_checks') || 'null') || DEFAULT_ECOMMERCE_CHECKS;
+
 function getActiveChecks() {
-  return currentAuditType === 'cctv' ? CCTV_CHECKS : CHECKS;
+  if (currentAuditType === 'cctv') return CCTV_CHECKS;
+  if (currentAuditType === 'ecommerce') return ECOMMERCE_CHECKS;
+  return CHECKS;
 }
 
 const DEFAULT_LISTS = {
@@ -1007,11 +1054,13 @@ let currentAuditType = 'stock';
 
 function setAuditType(type) {
   currentAuditType = type;
-  document.getElementById('btn-stock').className    = type === 'stock'    ? 'active-stock' : '';
-  document.getElementById('btn-surprise').className = type === 'surprise' ? 'active-surprise' : '';
-  document.getElementById('btn-cctv').className     = type === 'cctv'     ? 'active-cctv' : '';
-  document.getElementById('shrinkage-card').style.display  = type === 'stock' ? '' : 'none';
-  document.getElementById('cctv-extra-row').style.display  = type === 'cctv'  ? '' : 'none';
+  document.getElementById('btn-stock').className      = type === 'stock'      ? 'active-stock' : '';
+  document.getElementById('btn-surprise').className   = type === 'surprise'   ? 'active-surprise' : '';
+  document.getElementById('btn-cctv').className       = type === 'cctv'       ? 'active-cctv' : '';
+  document.getElementById('btn-ecommerce').className  = type === 'ecommerce'  ? 'active-ecommerce' : '';
+  document.getElementById('shrinkage-card').style.display       = type === 'stock'     ? '' : 'none';
+  document.getElementById('cctv-extra-row').style.display       = type === 'cctv'      ? '' : 'none';
+  document.getElementById('ecommerce-extra-row').style.display  = type === 'ecommerce' ? '' : 'none';
   buildChecklist();
 }
 let quickModalKey = '';
@@ -1144,17 +1193,22 @@ function openPhotoViewer(id, idx) {
 // ══════════════════════════════════════════════════════
 let editorMode = 'stock';
 
-function getEditorChecks() { return editorMode === 'cctv' ? CCTV_CHECKS : CHECKS; }
+function getEditorChecks() {
+  if (editorMode === 'cctv') return CCTV_CHECKS;
+  if (editorMode === 'ecommerce') return ECOMMERCE_CHECKS;
+  return CHECKS;
+}
 
 function openEditorForCurrentAudit() {
   goTab('editor', document.querySelectorAll('.tab')[1]);
-  setEditorMode(currentAuditType === 'cctv' ? 'cctv' : 'stock');
+  setEditorMode(currentAuditType === 'cctv' ? 'cctv' : currentAuditType === 'ecommerce' ? 'ecommerce' : 'stock');
 }
 
 function setEditorMode(mode) {
   editorMode = mode;
-  document.getElementById('editor-btn-stock').className = mode === 'stock' ? 'active-stock' : '';
-  document.getElementById('editor-btn-cctv').className  = mode === 'cctv'  ? 'active-cctv'  : '';
+  document.getElementById('editor-btn-stock').className     = mode === 'stock'     ? 'active-stock' : '';
+  document.getElementById('editor-btn-cctv').className      = mode === 'cctv'      ? 'active-cctv'  : '';
+  document.getElementById('editor-btn-ecommerce').className = mode === 'ecommerce' ? 'active-ecommerce' : '';
   renderEditor();
 }
 
@@ -1186,6 +1240,8 @@ function deleteCheck(idx) {
 function saveChecklist() {
   if (editorMode === 'cctv') {
     localStorage.setItem('kfl_cctv_checks', JSON.stringify(CCTV_CHECKS));
+  } else if (editorMode === 'ecommerce') {
+    localStorage.setItem('kfl_ecommerce_checks', JSON.stringify(ECOMMERCE_CHECKS));
   } else {
     localStorage.setItem('kfl_checks', JSON.stringify(CHECKS));
     if (SHEETS_URL) {
@@ -1315,8 +1371,9 @@ function submitAudit() {
   const score = answered ? Math.round((ok/answered)*100) : null;
   const isSurprise = currentAuditType === 'surprise';
   const isCctv = currentAuditType === 'cctv';
+  const isEcommerce = currentAuditType === 'ecommerce';
   const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',spct:(isSurprise||isCctv)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1331,7 +1388,7 @@ function submitAudit() {
 
 function resetForm(silent) {
   if (!silent&&!confirm('Clear all form fields?')) return;
-  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type','f-ec-issue','f-ec-order','f-ec-store-issue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   for(const k in checkStates)delete checkStates[k];
   for(const k in photoStates)delete photoStates[k];
@@ -1457,8 +1514,8 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}
-</td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button></td></tr>`;}).join('')}</tbody>`;
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':(s.auditType||'stock')==='ecommerce'?'background:#CCFBF1;color:#0F766E;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':(s.auditType||'stock')==='ecommerce'?'🛒 Ecommerce':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}
+</td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}</td><td><span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:(s.auditType||'stock')==='ecommerce'?ECOMMERCE_CHECKS.length:CHECKS.length}</span></td><td>${ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button></td></tr>`;}).join('')}</tbody>`;
 }
 
 function downloadPDF(idx) {
@@ -1471,7 +1528,7 @@ function downloadPDF(idx) {
   const spctNum = parseFloat(s.spct) || 0;
   const spctColor = spctNum < 0 ? '#A32D2D' : spctNum > 0 ? '#854F0B' : '#3B6D11';
 
-  const pdfChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
+  const pdfChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : (s.auditType||'stock') === 'ecommerce' ? ECOMMERCE_CHECKS : CHECKS);
   const checklistRows = pdfChecks.map(c => {
     const issue = s.issues.find(i => i.label === c.label);
     if (issue) {
@@ -1517,7 +1574,7 @@ function downloadPDF(idx) {
   </style></head><body>
   <div class="header">
     <div>
-      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':(s.auditType||'stock')==='cctv'?'CCTV SURVEILLANCE AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
+      <div class="brand">KUSHAL'S FASHION JEWELLERY — ${(s.auditType||'stock')==='surprise'?'SURPRISE AUDIT REPORT':(s.auditType||'stock')==='cctv'?'CCTV SURVEILLANCE AUDIT REPORT':(s.auditType||'stock')==='ecommerce'?'ECOMMERCE PACKING AUDIT REPORT':'STOCK AUDIT REPORT'}</div>
       <div class="outlet">${s.outlet}</div>
       <div class="meta">Auditor: <strong>${s.auditor}</strong> &nbsp;|&nbsp; Date: <strong>${s.date}</strong> &nbsp;|&nbsp; Cluster: <strong>${s.cluster}</strong>${s.area ? ' &nbsp;|&nbsp; Area: <strong>'+s.area+'</strong>' : ''}</div>
       <div class="meta" style="margin-top:2px;">Quarter: <strong>${s.qtr||'—'}</strong> &nbsp;|&nbsp; Month: <strong>${s.month||'—'}</strong></div>
@@ -1539,6 +1596,24 @@ function downloadPDF(idx) {
       <div class="lbl">Watch Type</div>
       <div class="val" style="color:#6B21A8;font-size:16px;">${s.watchType||'—'}</div>
     </div>
+  </div>`:(s.auditType||'stock')==='ecommerce'?`
+  <div class="metrics">
+    <div class="metric-box" style="background:#CCFBF1;border-color:#99F6E4;">
+      <div class="lbl">Audit Type</div>
+      <div class="val" style="color:#0F766E;font-size:16px;">🛒 Ecommerce Packing</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Order Number</div>
+      <div class="val" style="color:#1A1A18;font-size:16px;">${s.ecOrder||'—'}</div>
+    </div>
+    <div class="metric-box" style="background:#F0EDE6;border-color:#ddd;">
+      <div class="lbl">Issue from Store?</div>
+      <div class="val" style="color:#1A1A18;font-size:16px;">${s.ecStoreIssue||'—'}</div>
+    </div>
+    ${s.ecIssue?`<div class="metric-box" style="background:#F0EDE6;border-color:#ddd;grid-column:span 3;">
+      <div class="lbl">Issue Details</div>
+      <div class="val" style="color:#1A1A18;font-size:14px;font-weight:500;">${s.ecIssue}</div>
+    </div>`:''}
   </div>`:`
   <div class="metrics">
     <div class="metric-box" style="background:${spctNum<0?'#FCEBEB':spctNum>0?'#FAEEDA':'#EAF3DE'};border-color:${spctNum<0?'#F7C1C1':spctNum>0?'#FAC775':'#C0DD97'};">
@@ -1724,7 +1799,7 @@ function downloadCSV() {
   const seenLabels = new Set();
   const allCheckLabels = [];
   rows.forEach(s => {
-    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
+    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : (s.auditType||'stock') === 'ecommerce' ? ECOMMERCE_CHECKS : CHECKS);
     rowChecks.forEach(c => { if (!seenLabels.has(c.label)) { seenLabels.add(c.label); allCheckLabels.push(c.label); } });
   });
 
@@ -1895,12 +1970,12 @@ function openEditModal(idx) {
   document.getElementById('e-sale').value = s.sale || '';
   // Build checklist states from issues
   const resolvedType = (s.auditType || 'stock').toLowerCase().trim();
-  const typeLabel = resolvedType === 'cctv' ? '📹 CCTV Audit' : resolvedType === 'surprise' ? '⚡ Surprise Audit' : '📦 Stock Audit';
+  const typeLabel = resolvedType === 'cctv' ? '📹 CCTV Audit' : resolvedType === 'surprise' ? '⚡ Surprise Audit' : resolvedType === 'ecommerce' ? '🛒 Ecommerce Packing' : '📦 Stock Audit';
   document.getElementById('edit-modal-title').textContent = 'Edit Submission — ' + typeLabel;
   document.getElementById('edit-modal-type-label').textContent = resolvedType + (s.checklistSnapshot ? ' (snapshot:'+s.checklistSnapshot.length+')' : ' (no snapshot)');
   editChecks = s.checklistSnapshot && s.checklistSnapshot.length
     ? s.checklistSnapshot
-    : resolvedType === 'cctv' ? CCTV_CHECKS : CHECKS;
+    : resolvedType === 'cctv' ? CCTV_CHECKS : resolvedType === 'ecommerce' ? ECOMMERCE_CHECKS : CHECKS;
   editCheckStates = {};
   editChecks.forEach(c => { editCheckStates[c.id || c.label] = 'ok'; });
   s.issues.forEach(i => {
