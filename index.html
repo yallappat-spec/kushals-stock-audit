@@ -1003,20 +1003,7 @@ const DEFAULT_CCTV_CHECKS = [
 
 let CCTV_CHECKS = JSON.parse(localStorage.getItem('kfl_cctv_checks') || 'null') || DEFAULT_CCTV_CHECKS;
 
-const DEFAULT_ECOMMERCE_CHECKS = [
-  {id:'ec_order_verify',   label:'Order items verified before packing',              sub:'Whether order items are verified against the order slip before packing'},
-  {id:'ec_packing_qual',   label:'Packing material quality adequate',                sub:'Whether packing material used is of adequate quality and in good condition'},
-  {id:'ec_product_tag',    label:'Product tags / labels intact',                     sub:'Whether product tags and labels are intact and undamaged before packing'},
-  {id:'ec_invoice',        label:'Invoice included in the package',                  sub:'Whether a printed invoice is included inside the package'},
-  {id:'ec_seal',           label:'Package properly sealed',                          sub:'Whether the package is properly sealed with tamper-evident tape or mechanism'},
-  {id:'ec_fragile',        label:'Fragile items wrapped with protective material',   sub:'Whether fragile items are wrapped with bubble wrap or protective material'},
-  {id:'ec_photo',          label:'Product photo taken before dispatch',              sub:'Whether a photograph of the packed product is taken before dispatch'},
-  {id:'ec_item_count',     label:'Item count matches order quantity',                sub:'Whether the quantity of items packed matches the order quantity'},
-  {id:'ec_dispatch_time',  label:'Dispatch within committed timeline',               sub:'Whether the order is dispatched within the committed SLA timeline'},
-  {id:'ec_return_process', label:'Return / exchange process followed',               sub:'Whether return and exchange requests are handled as per process'},
-  {id:'ec_packing_area',   label:'Packing area clean and organised',                 sub:'Whether the packing area is clean, organised, and free from clutter'},
-  {id:'ec_address_label',  label:'Correct address label on package',                 sub:'Whether the correct customer address label is affixed to the package'},
-];
+const DEFAULT_ECOMMERCE_CHECKS = [];
 let ECOMMERCE_CHECKS = JSON.parse(localStorage.getItem('kfl_ecommerce_checks') || 'null') || DEFAULT_ECOMMERCE_CHECKS;
 
 function getActiveChecks() {
