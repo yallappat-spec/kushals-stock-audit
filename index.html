@@ -1787,12 +1787,14 @@ function downloadCSV() {
   if (!rows.length) { alert('No data to export.'); return; }
   const escape = v => `"${String(v||'').replace(/"/g,'""')}"`;
 
-  const hasStockRows = rows.some(s => (s.auditType||'stock') === 'stock');
-  const hasCctvRows  = rows.some(s => (s.auditType||'stock') === 'cctv');
+  const hasStockRows     = rows.some(s => (s.auditType||'stock') === 'stock');
+  const hasCctvRows      = rows.some(s => (s.auditType||'stock') === 'cctv');
+  const hasEcommerceRows = rows.some(s => (s.auditType||'stock') === 'ecommerce');
 
   const baseHeaders = ['Audit Type','Date','Outlet','Auditor','Cluster','Area','Quarter','Month'];
-  if (hasCctvRows)  baseHeaders.push('Watched Date','Watch Type');
-  if (hasStockRows) baseHeaders.push('Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale');
+  if (hasCctvRows)      baseHeaders.push('Watched Date','Watch Type');
+  if (hasStockRows)     baseHeaders.push('Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale');
+  if (hasEcommerceRows) baseHeaders.push('Issue Details','Order Number','Issue from Store?','Issue Date');
   baseHeaders.push('Score %','Answered');
 
   // Collect all unique checklist labels across all rows (preserving order: stock first, then cctv)
@@ -1813,9 +1815,11 @@ function downloadCSV() {
     s.issues.forEach(i => { issueMap[i.label] = i.note || ''; });
 
     const base = [escape(s.auditType||'stock'), s.date, escape(s.outlet), escape(s.auditor), escape(s.cluster), escape(s.area), s.qtr, s.month];
-    if (hasCctvRows)  base.push(escape(s.watchedDate||''), escape(s.watchType||''));
+    if (hasCctvRows)      base.push(escape(s.watchedDate||''), escape(s.watchType||''));
     const noShrinkage = (s.auditType||'stock') !== 'stock';
-    if (hasStockRows) base.push(noShrinkage?'':s.spct, noShrinkage?'':s.sval, noShrinkage?'':s.sqty, noShrinkage?'':s.sale);
+    if (hasStockRows)     base.push(noShrinkage?'':s.spct, noShrinkage?'':s.sval, noShrinkage?'':s.sqty, noShrinkage?'':s.sale);
+    const isEcRow = (s.auditType||'stock') === 'ecommerce';
+    if (hasEcommerceRows) base.push(isEcRow?escape(s.ecIssue||''):'', isEcRow?escape(s.ecOrder||''):'', isEcRow?escape(s.ecStoreIssue||''):'', isEcRow?escape(s.ecIssueDate||''):'');
     base.push(s.score, s.answered);
 
     const checks = allCheckLabels.map(label => {
