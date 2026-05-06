@@ -262,22 +262,30 @@
           </select>
         </div>
       </div>
-      <div class="grid3" id="ecommerce-extra-row" style="display:none;">
-        <div class="field">
-          <label>Issue Details <span class="req">*</span></label>
-          <input type="text" id="f-ec-issue" placeholder="Describe the ecommerce issue...">
+      <div id="ecommerce-extra-row" style="display:none;">
+        <div class="grid3">
+          <div class="field">
+            <label>Issue Details <span class="req">*</span></label>
+            <input type="text" id="f-ec-issue" placeholder="Describe the ecommerce issue...">
+          </div>
+          <div class="field">
+            <label>Order Number <span class="req">*</span></label>
+            <input type="text" id="f-ec-order" placeholder="e.g. ORD-12345">
+          </div>
+          <div class="field">
+            <label>Issue from Store? <span class="req">*</span></label>
+            <select id="f-ec-store-issue">
+              <option value="">Select...</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>Order Number <span class="req">*</span></label>
-          <input type="text" id="f-ec-order" placeholder="e.g. ORD-12345">
-        </div>
-        <div class="field">
-          <label>Issue from Store? <span class="req">*</span></label>
-          <select id="f-ec-store-issue">
-            <option value="">Select...</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+        <div class="grid3">
+          <div class="field">
+            <label>Issue Date <span class="req">*</span></label>
+            <input type="date" id="f-ec-issue-date">
+          </div>
         </div>
       </div>
       <div class="grid3">
@@ -693,6 +701,7 @@
               <option value="ecommerce">Ecommerce Packing</option>
             </select>
             <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
+            <input type="date" id="f-ec-date-filter" onchange="applyFilters()" title="Filter by Issue Date (Ecommerce)" style="font-size:13px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">
           </div>
         </div>
 
@@ -800,13 +809,13 @@
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
-    sheet.getRange(d.rowIndex, 1, 1, 21).setValues([[
+    sheet.getRange(d.rowIndex, 1, 1, 22).setValues([[
       new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
       d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
       d.score, d.answered, d.issues.length,
       d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
       d.auditType || 'stock', d.watchedDate || '',
-      d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || ''
+      d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || ''
     ]]);
     return ok();
   }
@@ -815,7 +824,7 @@
       'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
       'Store Sale','Score %','Answered','Issues Count','Issues Detail',
       'Audit Type','Watched Date',
-      'EC Issue Details','EC Order Number','EC Store Issue']);
+      'EC Issue Details','EC Order Number','EC Store Issue','EC Issue Date']);
   }
   sheet.appendRow([
     new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
@@ -890,7 +899,8 @@ function doGet(e) {
       watchedDate: row[17] ? String(row[17]) : '',
       ecIssue: row[18] ? String(row[18]) : '',
       ecOrder: row[19] ? String(row[19]) : '',
-      ecStoreIssue: row[20] ? String(row[20]) : ''
+      ecStoreIssue: row[20] ? String(row[20]) : '',
+      ecIssueDate: row[21] ? String(row[21]) : ''
     };
   });
   return ContentService.createTextOutput(JSON.stringify({rows:rows}))
@@ -1361,7 +1371,7 @@ function submitAudit() {
   const isCctv = currentAuditType === 'cctv';
   const isEcommerce = currentAuditType === 'ecommerce';
   const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',ecIssueDate:isEcommerce?(document.getElementById('f-ec-issue-date').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
@@ -1376,7 +1386,7 @@ function submitAudit() {
 
 function resetForm(silent) {
   if (!silent&&!confirm('Clear all form fields?')) return;
-  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type','f-ec-issue','f-ec-order','f-ec-store-issue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type','f-ec-issue','f-ec-order','f-ec-store-issue','f-ec-issue-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   for(const k in checkStates)delete checkStates[k];
   for(const k in photoStates)delete photoStates[k];
@@ -1476,7 +1486,7 @@ async function renderSummary() {
   const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
   ff.innerHTML = '<option value="">All auditors</option>' + auditors.map(v=>`<option>${v}</option>`).join('');
   // reset filters
-  ['f-search','f-qtr-filter','f-month-filter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-search','f-qtr-filter','f-month-filter','f-ec-date-filter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderTable();
   renderGapAnalysis(displaySubs);
 }
@@ -1486,13 +1496,15 @@ function getFilteredRows() {
   const auditor   = document.getElementById('f-filter').value;
   const qtr       = document.getElementById('f-qtr-filter').value;
   const month     = document.getElementById('f-month-filter').value;
-  const auditType = (document.getElementById('f-audit-type-filter')||{value:''}).value;
+  const auditType  = (document.getElementById('f-audit-type-filter')||{value:''}).value;
+  const ecDateF    = (document.getElementById('f-ec-date-filter')||{value:''}).value;
   return displaySubs.filter(s => {
     if (search    && !(s.outlet||'').toLowerCase().includes(search)) return false;
     if (auditor   && s.auditor !== auditor) return false;
     if (qtr       && s.qtr !== qtr) return false;
     if (month     && s.month !== month) return false;
     if (auditType && (s.auditType||'stock') !== auditType) return false;
+    if (ecDateF   && s.ecIssueDate !== ecDateF) return false;
     return true;
   });
 }
@@ -1502,7 +1514,7 @@ function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
-  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':(s.auditType||'stock')==='ecommerce'?'background:#CCFBF1;color:#0F766E;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':(s.auditType||'stock')==='ecommerce'?'🛒 Ecommerce':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}
+  document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''}</span><ul class="issue-list">${s.issues.slice(0,3).map(i=>`<li>${i.label}${i.note?': '+i.note.substring(0,35)+(i.note.length>35?'…':''):''}</li>`).join('')}${s.issues.length>3?`<li>+${s.issues.length-3} more</li>`:''}</ul>`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':(s.auditType||'stock')==='ecommerce'?'background:#CCFBF1;color:#0F766E;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':(s.auditType||'stock')==='ecommerce'?'🛒 Ecommerce':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}${(s.auditType||'stock')==='ecommerce'&&s.ecIssueDate?`<br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">Issue: ${s.ecIssueDate}</span>`:''}
 </td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">Order #</span><br><strong style="font-size:13px;">${s.ecOrder||'—'}</strong>`:`${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">From store?</span><br><strong style="font-size:14px;color:${s.ecStoreIssue==='Yes'?'var(--red)':s.ecStoreIssue==='No'?'var(--green)':'var(--text-muted)'}">${s.ecStoreIssue||'—'}</strong>`:`<span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span>`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:12px;display:block;max-width:200px;">${s.ecIssue||'—'}</span>`:ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button></td></tr>`;}).join('')}</tbody>`;
 }
 
