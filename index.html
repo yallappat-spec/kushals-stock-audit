@@ -1790,26 +1790,29 @@ function downloadCSV() {
   const hasStockRows     = rows.some(s => (s.auditType||'stock') === 'stock');
   const hasCctvRows      = rows.some(s => (s.auditType||'stock') === 'cctv');
   const hasEcommerceRows = rows.some(s => (s.auditType||'stock') === 'ecommerce');
+  const hasNonEcRows     = rows.some(s => (s.auditType||'stock') !== 'ecommerce');
 
   const baseHeaders = ['Audit Type','Date','Outlet','Auditor','Cluster','Area','Quarter','Month'];
   if (hasCctvRows)      baseHeaders.push('Watched Date','Watch Type');
   if (hasStockRows)     baseHeaders.push('Shrinkage %','Shrinkage Value','Shrinkage Qty','Store Sale');
   if (hasEcommerceRows) baseHeaders.push('Issue Details','Order Number','Issue from Store?','Issue Date');
-  baseHeaders.push('Score %','Answered');
+  if (hasNonEcRows)     baseHeaders.push('Score %','Answered');
 
-  // Collect all unique checklist labels across all rows (preserving order: stock first, then cctv)
+  // Collect checklist labels only from non-ecommerce rows
   const seenLabels = new Set();
   const allCheckLabels = [];
   rows.forEach(s => {
-    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : (s.auditType||'stock') === 'ecommerce' ? ECOMMERCE_CHECKS : CHECKS);
+    if ((s.auditType||'stock') === 'ecommerce') return;
+    const rowChecks = s.checklistSnapshot || ((s.auditType||'stock') === 'cctv' ? CCTV_CHECKS : CHECKS);
     rowChecks.forEach(c => { if (!seenLabels.has(c.label)) { seenLabels.add(c.label); allCheckLabels.push(c.label); } });
   });
 
   const headers = [...baseHeaders, ...allCheckLabels].map(escape).join(',');
 
   const csvRows = [headers, ...rows.map(s => {
+    const isEcRow  = (s.auditType||'stock') === 'ecommerce';
     const isCctvRow = (s.auditType||'stock') === 'cctv';
-    const rowChecks = s.checklistSnapshot || (isCctvRow ? CCTV_CHECKS : CHECKS);
+    const rowChecks = isEcRow ? [] : (s.checklistSnapshot || (isCctvRow ? CCTV_CHECKS : CHECKS));
     const rowLabels = new Set(rowChecks.map(c => c.label));
     const issueMap = {};
     s.issues.forEach(i => { issueMap[i.label] = i.note || ''; });
@@ -1818,11 +1821,11 @@ function downloadCSV() {
     if (hasCctvRows)      base.push(escape(s.watchedDate||''), escape(s.watchType||''));
     const noShrinkage = (s.auditType||'stock') !== 'stock';
     if (hasStockRows)     base.push(noShrinkage?'':s.spct, noShrinkage?'':s.sval, noShrinkage?'':s.sqty, noShrinkage?'':s.sale);
-    const isEcRow = (s.auditType||'stock') === 'ecommerce';
     if (hasEcommerceRows) base.push(isEcRow?escape(s.ecIssue||''):'', isEcRow?escape(s.ecOrder||''):'', isEcRow?escape(s.ecStoreIssue||''):'', isEcRow?escape(s.ecIssueDate||''):'');
-    base.push(s.score, s.answered);
+    if (hasNonEcRows)     base.push(isEcRow?'':s.score, isEcRow?'':s.answered);
 
     const checks = allCheckLabels.map(label => {
+      if (isEcRow) return escape('');
       if (!rowLabels.has(label)) return escape('N/A');
       if (label in issueMap) return escape('Issue Found' + (issueMap[label] ? ': ' + issueMap[label] : ''));
       return escape('No Issue');
