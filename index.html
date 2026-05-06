@@ -832,7 +832,7 @@
     d.score, d.answered, d.issues.length,
     d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
     d.auditType || 'stock', d.watchedDate || '',
-    d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || ''
+    d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || ''
   ]);
   return ok();
 }
