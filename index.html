@@ -1409,11 +1409,12 @@ async function fetchFromSheet() {
   return (json.rows || []).filter(r => !r._test).reverse();
 }
 
-function renderAllMetrics() {
-  const total = displaySubs.length;
-  const clean = displaySubs.filter(s => !s.issues.length).length;
-  const totalIssues = displaySubs.reduce((a,s) => a + s.issues.length, 0);
-  const scores = displaySubs.filter(s => s.score !== null).map(s => s.score);
+function renderAllMetrics(rows) {
+  if (!rows) rows = displaySubs;
+  const total = rows.length;
+  const clean = rows.filter(s => !s.issues.length).length;
+  const totalIssues = rows.reduce((a,s) => a + s.issues.length, 0);
+  const scores = rows.filter(s => s.score !== null).map(s => s.score);
   const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
   document.getElementById('metric-row').innerHTML =
     `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
@@ -1509,7 +1510,7 @@ function getFilteredRows() {
   });
 }
 
-function applyFilters() { renderTable(); renderGapAnalysis(getFilteredRows()); }
+function applyFilters() { const filtered = getFilteredRows(); renderAllMetrics(filtered); renderTable(); renderGapAnalysis(filtered); }
 
 function renderTable() {
   const rows = getFilteredRows();
@@ -1721,7 +1722,7 @@ function switchSubTab(tab) {
   document.getElementById('sub-tab-shrinkage').style.borderBottomColor = isAll ? 'transparent' : 'var(--accent)';
   document.getElementById('sub-tab-shrinkage').style.color = isAll ? 'var(--text-muted)' : 'var(--text)';
   document.getElementById('sub-tab-shrinkage').style.fontWeight = isAll ? '500' : '600';
-  if (isAll) { renderAllMetrics(); } else { renderShrinkageTable(); }
+  if (isAll) { renderAllMetrics(getFilteredRows()); } else { renderShrinkageTable(); }
 }
 
 function getShrinkageRows() {
