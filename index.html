@@ -311,6 +311,19 @@
           </div>
         </div>
       </div>
+      <div class="grid3" id="stock-num-auditors-row">
+        <div class="field">
+          <label>No. of Auditors</label>
+          <select id="f-num-auditors">
+            <option value="">Select...</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <div class="card" id="shrinkage-card">
@@ -830,13 +843,14 @@
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
-    sheet.getRange(d.rowIndex, 1, 1, 22).setValues([[
+    sheet.getRange(d.rowIndex, 1, 1, 23).setValues([[
       new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
       d.qtr, d.month, d.spct, d.sval, d.sqty, d.sale,
       d.score, d.answered, d.issues.length,
       d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
       d.auditType || 'stock', d.watchedDate || '',
-      d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || ''
+      d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || '',
+      d.numAuditors || ''
     ]]);
     return ok();
   }
@@ -845,7 +859,8 @@
       'Quarter','Month','Shrinkage %','Shrinkage Value','Shrinkage Qty',
       'Store Sale','Score %','Answered','Issues Count','Issues Detail',
       'Audit Type','Watched Date',
-      'EC Issue Details','EC Order Number','EC Store Issue','EC Issue Date']);
+      'EC Issue Details','EC Order Number','EC Store Issue','EC Issue Date',
+      'No. of Auditors']);
   }
   sheet.appendRow([
     new Date(), d.auditor, d.outlet, d.date, d.cluster, d.area,
@@ -853,7 +868,8 @@
     d.score, d.answered, d.issues.length,
     d.issues.map(function(i){return i.label+(i.note?': '+i.note:'');}).join(' | '),
     d.auditType || 'stock', d.watchedDate || '',
-    d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || ''
+    d.ecIssue || '', d.ecOrder || '', d.ecStoreIssue || '', d.ecIssueDate || '',
+    d.numAuditors || ''
   ]);
   return ok();
 }
@@ -940,7 +956,8 @@ function doGet(e) {
       ecIssue: row[18] ? String(row[18]) : '',
       ecOrder: row[19] ? String(row[19]) : '',
       ecStoreIssue: row[20] ? String(row[20]) : '',
-      ecIssueDate: row[21] ? String(row[21]) : ''
+      ecIssueDate: row[21] ? String(row[21]) : '',
+      numAuditors: row[22] ? String(row[22]) : ''
     };
   });
   return ContentService.createTextOutput(JSON.stringify({rows:rows}))
@@ -985,11 +1002,12 @@ function doGet(e) {
       <div class="field"><label>Quarter &amp; Month</label><div style="display:flex;gap:7px;"><select id="e-qtr" style="flex:1;"><option value="">Qtr</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select><select id="e-month" style="flex:2;"><option value="">Month</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div></div>
     </div>
     <div class="grid3" style="margin-top:4px;">
+      <div class="field"><label>No. of Auditors</label><select id="e-num-auditors"><option value="">Select...</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
       <div class="field"><label>Shrinkage %</label><input type="text" id="e-spct" placeholder="e.g. -0.03 (no % sign)"></div>
       <div class="field"><label>Shrinkage Value (₹)</label><input type="text" id="e-sval" placeholder="Amount"></div>
-      <div class="field"><label>Shrinkage Qty</label><input type="text" id="e-sqty" placeholder="Pieces"></div>
     </div>
-    <div class="grid2" style="margin-top:0;">
+    <div class="grid3" style="margin-top:0;">
+      <div class="field"><label>Shrinkage Qty</label><input type="text" id="e-sqty" placeholder="Pieces"></div>
       <div class="field"><label>Store Sale (₹)</label><input type="text" id="e-sale" placeholder="₹ total sales"></div>
     </div>
     <div class="card-title" style="margin-top:16px;margin-bottom:10px;">Operations Checklist — <span id="edit-modal-type-label" style="color:var(--blue);text-transform:none;font-size:12px;"></span></div>
@@ -1096,10 +1114,11 @@ function setAuditType(type) {
   document.getElementById('btn-surprise').className   = type === 'surprise'   ? 'active-surprise' : '';
   document.getElementById('btn-cctv').className       = type === 'cctv'       ? 'active-cctv' : '';
   document.getElementById('btn-ecommerce').className  = type === 'ecommerce'  ? 'active-ecommerce' : '';
-  document.getElementById('shrinkage-card').style.display       = type === 'stock'     ? '' : 'none';
-  document.getElementById('cctv-extra-row').style.display       = type === 'cctv'      ? '' : 'none';
-  document.getElementById('ecommerce-extra-row').style.display  = type === 'ecommerce' ? '' : 'none';
-  document.getElementById('checklist-card-wrap').style.display  = type === 'ecommerce' ? 'none' : '';
+  document.getElementById('shrinkage-card').style.display            = type === 'stock'     ? '' : 'none';
+  document.getElementById('cctv-extra-row').style.display            = type === 'cctv'      ? '' : 'none';
+  document.getElementById('ecommerce-extra-row').style.display       = type === 'ecommerce' ? '' : 'none';
+  document.getElementById('checklist-card-wrap').style.display       = type === 'ecommerce' ? 'none' : '';
+  document.getElementById('stock-num-auditors-row').style.display    = type === 'stock'     ? '' : 'none';
   buildChecklist();
 }
 let quickModalKey = '';
@@ -1412,7 +1431,7 @@ function submitAudit() {
   const isCctv = currentAuditType === 'cctv';
   const isEcommerce = currentAuditType === 'ecommerce';
   const checklistSnapshot = activeChecks.map(c=>({id:c.id,label:c.label,sub:c.sub}));
-  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',ecIssueDate:isEcommerce?(document.getElementById('f-ec-issue-date').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+  const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,numAuditors:(!isSurprise&&!isCctv&&!isEcommerce)?document.getElementById('f-num-auditors').value:'',watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',ecIssueDate:isEcommerce?(document.getElementById('f-ec-issue-date').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   // Persist photos separately so they survive Sheets overwrites of kfl_submissions
@@ -1434,7 +1453,7 @@ function submitAudit() {
 
 function resetForm(silent) {
   if (!silent&&!confirm('Clear all form fields?')) return;
-  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type','f-ec-issue','f-ec-order','f-ec-store-issue','f-ec-issue-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-auditor','f-outlet','f-cluster','f-area','f-qtr','f-month','f-num-auditors','f-spct','f-sval','f-sqty','f-sale','f-watched-date','f-watch-type','f-ec-issue','f-ec-order','f-ec-store-issue','f-ec-issue-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
   for(const k in checkStates)delete checkStates[k];
   for(const k in photoStates)delete photoStates[k];
@@ -2065,6 +2084,7 @@ function openEditModal(idx) {
   document.getElementById('e-date').value = s.date || '';
   document.getElementById('e-qtr').value = s.qtr || '';
   document.getElementById('e-month').value = s.month || '';
+  document.getElementById('e-num-auditors').value = s.numAuditors || '';
   document.getElementById('e-spct').value = s.spct || '';
   document.getElementById('e-sval').value = s.sval || '';
   document.getElementById('e-sqty').value = s.sqty || '';
@@ -2138,6 +2158,7 @@ async function saveEdit() {
     area:  document.getElementById('e-area').value,
     qtr:   document.getElementById('e-qtr').value,
     month: document.getElementById('e-month').value,
+    numAuditors: document.getElementById('e-num-auditors').value,
     spct:  document.getElementById('e-spct').value.replace(/%/g,'').trim(),
     sval:  document.getElementById('e-sval').value,
     sqty:  document.getElementById('e-sqty').value,
