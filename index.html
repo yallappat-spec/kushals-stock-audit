@@ -1455,7 +1455,23 @@ async function renderSummary() {
     empty.style.display   = 'none';
     content.style.display = 'none';
     try {
-      displaySubs = await fetchFromSheet();
+      const sheetsSubs = await fetchFromSheet();
+      // Merge local photos into Sheets data (photos are stored locally only, not synced to Sheets)
+      displaySubs = sheetsSubs.map(sr => {
+        const local = submissions.find(l =>
+          l.ts === sr.ts && l.outlet === sr.outlet && l.auditor === sr.auditor
+        );
+        if (local && local.issues) {
+          return {
+            ...sr,
+            issues: sr.issues.map(si => {
+              const li = local.issues.find(i => i.label === si.label);
+              return (li && li.photos && li.photos.length) ? {...si, photos: li.photos} : si;
+            })
+          };
+        }
+        return sr;
+      });
       localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
       source.textContent = '— from Google Sheets';
       refreshBtn.style.display = 'inline-flex';
