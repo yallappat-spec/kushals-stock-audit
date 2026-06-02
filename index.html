@@ -807,6 +807,27 @@
     cfg.getRange(2,1).setValue(JSON.stringify(d.lists));
     return ok();
   }
+  if (d.action === 'savePhotos') {
+    var photosSheet = ss.getSheetByName('_photos') || ss.insertSheet('_photos');
+    if (photosSheet.getLastRow() === 0) photosSheet.appendRow(['Key','Label','DriveURL']);
+    var folder = getOrCreateFolder('KFL Audit Photos');
+    var urls = {};
+    (d.photos || []).forEach(function(p) {
+      try {
+        var base64 = p.data.replace(/^data:image\/\w+;base64,/, '');
+        var blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg',
+          d.key.replace(/[|\/\\:*?"&lt;&gt;]/g, '_').substring(0,60) + '_' +
+          p.label.replace(/[^a-zA-Z0-9 ]/g,'_').substring(0,30) + '.jpg');
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        var url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+        photosSheet.appendRow([d.key, p.label, url]);
+        urls[p.label] = url;
+      } catch(err) {}
+    });
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', urls:urls}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
     sheet.getRange(d.rowIndex, 1, 1, 22).setValues([[
@@ -840,6 +861,10 @@ function ok() {
   return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
     .setMimeType(ContentService.MimeType.JSON);
 }
+function getOrCreateFolder(name) {
+  var folders = DriveApp.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(name);
+}
 
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -867,6 +892,17 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({lists:{}}))
       .setMimeType(ContentService.MimeType.JSON);
   }
+  // Build photo lookup from _photos sheet
+  var photoLookup = {};
+  var photosSheet = ss.getSheetByName('_photos');
+  if (photosSheet && photosSheet.getLastRow() > 1) {
+    photosSheet.getDataRange().getValues().slice(1).forEach(function(row) {
+      var key = String(row[0]), label = String(row[1]), url = String(row[2]);
+      if (!photoLookup[key]) photoLookup[key] = {};
+      if (!photoLookup[key][label]) photoLookup[key][label] = [];
+      photoLookup[key][label].push(url);
+    });
+  }
   var sheet = ss.getActiveSheet();
   var data = sheet.getDataRange().getValues();
   if (data.length <= 1) {
@@ -875,11 +911,6 @@ function doGet(e) {
   }
   var tz = Session.getScriptTimeZone();
   var rows = data.slice(1).map(function(row, idx) {
-    var issueStr = row[15] ? String(row[15]) : '';
-    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
-      var i = s.indexOf(': ');
-      return i > -1 ? {label:s.substring(0,i), note:s.substring(i+2)} : {label:s, note:''};
-    }) : [];
     var ts = row[0];
     var tsStr = ts instanceof Date
       ? Utilities.formatDate(ts, tz, 'dd MMM, hh:mm a')
@@ -888,6 +919,15 @@ function doGet(e) {
     var dateStr = dateVal instanceof Date
       ? Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd')
       : String(dateVal);
+    var photoKey = String(row[2]) + '|' + dateStr + '|' + String(row[1]);
+    var issuePhotos = photoLookup[photoKey] || {};
+    var issueStr = row[15] ? String(row[15]) : '';
+    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
+      var i = s.indexOf(': ');
+      var label = i > -1 ? s.substring(0,i) : s;
+      var note  = i > -1 ? s.substring(i+2) : '';
+      return {label:label, note:note, photos:issuePhotos[label]||[]};
+    }) : [];
     return {
       _row: idx + 2,
       ts: tsStr, auditor: row[1], outlet: row[2], date: dateStr,
@@ -1046,6 +1086,7 @@ function saveLists() {
 const checkStates = {};
 const photoStates = {}; // {checkId: [base64, ...]}
 const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
+const photoStore = JSON.parse(localStorage.getItem('kfl_photo_store') || '{}'); // {key: {label: [base64,...]}} — never overwritten by Sheets
 let checkModalIdx = -1;
 let currentAuditType = 'stock';
 
@@ -1374,8 +1415,15 @@ function submitAudit() {
   const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',ecIssueDate:isEcommerce?(document.getElementById('f-ec-issue-date').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
+  // Persist photos separately so they survive Sheets overwrites of kfl_submissions
+  const photoKey = `${entry.outlet}|${entry.date}|${entry.auditor}`;
+  const photoMap = {};
+  entry.issues.forEach(i => { if (i.photos && i.photos.length) photoMap[i.label] = i.photos; });
+  if (Object.keys(photoMap).length) { photoStore[photoKey] = photoMap; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
   syncToSheet(sheetsEntry);
+  // Upload photos to Google Drive (async — updates photoStore with Drive URLs when done)
+  if (SHEETS_URL && Object.keys(photoMap).length) savePhotosToCloud(photoKey, photoMap);
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
   document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
@@ -1456,21 +1504,17 @@ async function renderSummary() {
     content.style.display = 'none';
     try {
       const sheetsSubs = await fetchFromSheet();
-      // Merge local photos into Sheets data (photos are stored locally only, not synced to Sheets)
+      // Re-attach photos from the local photo store (photos are never sent to Sheets)
       displaySubs = sheetsSubs.map(sr => {
-        const local = submissions.find(l =>
-          l.ts === sr.ts && l.outlet === sr.outlet && l.auditor === sr.auditor
-        );
-        if (local && local.issues) {
-          return {
-            ...sr,
-            issues: sr.issues.map(si => {
-              const li = local.issues.find(i => i.label === si.label);
-              return (li && li.photos && li.photos.length) ? {...si, photos: li.photos} : si;
-            })
-          };
-        }
-        return sr;
+        const photoMap = photoStore[`${sr.outlet}|${sr.date}|${sr.auditor}`];
+        if (!photoMap) return sr;
+        return {
+          ...sr,
+          issues: sr.issues.map(si => {
+            const photos = photoMap[si.label];
+            return (photos && photos.length) ? {...si, photos} : si;
+          })
+        };
       });
       localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
       source.textContent = '— from Google Sheets';
@@ -1968,6 +2012,26 @@ function syncToSheet(entry) {
     });
 }
 
+function savePhotosToCloud(photoKey, photoMap) {
+  if (!SHEETS_URL) return;
+  const photos = Object.entries(photoMap).flatMap(([label, imgs]) =>
+    imgs.map(data => ({label, data}))
+  );
+  if (!photos.length) return;
+  fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'savePhotos', key:photoKey, photos})})
+    .then(r => r.json())
+    .then(data => {
+      if (data.urls) {
+        // Replace base64 in photoStore with Drive URLs
+        const updated = {};
+        Object.entries(data.urls).forEach(([label, url]) => { updated[label] = [url]; });
+        photoStore[photoKey] = {...(photoStore[photoKey]||{}), ...updated};
+        localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore));
+      }
+    })
+    .catch(() => {}); // silently keep local base64 as fallback
+}
+
 // ══════════════════════════════════════════════════════
 // EDIT & DELETE
 // ══════════════════════════════════════════════════════
@@ -2084,6 +2148,8 @@ function deleteEntry(idx) {
   }
   displaySubs.splice(idx, 1);
   localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
+  const pk = `${s.outlet}|${s.date}|${s.auditor}`;
+  if (photoStore[pk]) { delete photoStore[pk]; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   renderTable();
   renderGapAnalysis(getFilteredRows());
   // update metrics
