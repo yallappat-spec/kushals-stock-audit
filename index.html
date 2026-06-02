@@ -1516,6 +1516,15 @@ async function renderSummary() {
           })
         };
       });
+      // Re-apply any locally-saved edits that haven't been confirmed by Sheets yet
+      const _pending = JSON.parse(localStorage.getItem('kfl_pending_edits') || '{}');
+      if (Object.keys(_pending).length) {
+        displaySubs = displaySubs.map(sub => {
+          const key = `${sub.outlet}|${sub.date}|${sub.auditor}`;
+          const edit = _pending[key];
+          return edit ? {...sub, ...edit, _row: sub._row} : sub;
+        });
+      }
       localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
       source.textContent = '— from Google Sheets';
       refreshBtn.style.display = 'inline-flex';
@@ -2104,7 +2113,7 @@ function setEditCheck(key, val, btn) {
 
 function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
 
-function saveEdit() {
+async function saveEdit() {
   const s = displaySubs[editIdx];
   const auditor = document.getElementById('e-auditor').value;
   const outlet  = document.getElementById('e-outlet').value;
@@ -2132,12 +2141,35 @@ function saveEdit() {
     score, answered, issues
   };
   displaySubs[editIdx] = updated;
-  if (SHEETS_URL && s._row) {
-    fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'update', rowIndex:s._row, ...updated})}).catch(()=>{});
-  }
+  localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
+  // Persist edit locally so it survives page refresh even if Sheets sync is delayed
+  const editKey = `${updated.outlet}|${updated.date}|${updated.auditor}`;
+  const pendingEdits = JSON.parse(localStorage.getItem('kfl_pending_edits') || '{}');
+  pendingEdits[editKey] = updated;
+  localStorage.setItem('kfl_pending_edits', JSON.stringify(pendingEdits));
   closeEditModal();
   renderTable();
+  renderShrinkageTable();
   renderGapAnalysis(getFilteredRows());
+  if (SHEETS_URL && s._row) {
+    const dot = document.getElementById('sync-dot');
+    dot.className = 'sync-dot spin';
+    try {
+      const res = await fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'update', rowIndex:s._row, ...updated})});
+      const data = await res.json();
+      if (data.status === 'ok') {
+        delete pendingEdits[editKey];
+        localStorage.setItem('kfl_pending_edits', JSON.stringify(pendingEdits));
+        dot.className = 'sync-dot ok';
+      } else {
+        dot.className = 'sync-dot err';
+      }
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 3000);
+    } catch(e) {
+      dot.className = 'sync-dot err';
+      setTimeout(() => { dot.className = 'sync-dot ok'; }, 5000);
+    }
+  }
 }
 
 function deleteEntry(idx) {
@@ -2150,6 +2182,8 @@ function deleteEntry(idx) {
   localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
   const pk = `${s.outlet}|${s.date}|${s.auditor}`;
   if (photoStore[pk]) { delete photoStore[pk]; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
+  const _pe = JSON.parse(localStorage.getItem('kfl_pending_edits') || '{}');
+  if (_pe[pk]) { delete _pe[pk]; localStorage.setItem('kfl_pending_edits', JSON.stringify(_pe)); }
   renderTable();
   renderGapAnalysis(getFilteredRows());
   // update metrics
