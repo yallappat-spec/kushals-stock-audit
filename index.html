@@ -1475,7 +1475,7 @@ function renderGapMetrics() {}
 
 function parseNum(v) { return parseFloat(String(v||'').replace(/,/g,'')) || 0; }
 
-function fmtINR(v) { return v ? '₹' + Math.abs(v).toLocaleString('en-IN') : '—'; }
+function fmtINR(v) { return (v !== null && v !== undefined && v !== '') ? '₹' + Math.abs(v).toLocaleString('en-IN') : '—'; }
 
 function renderShrinkageMetrics() {
   const rows = getShrinkageRows();
@@ -1505,12 +1505,16 @@ async function renderSummary() {
     try {
       const sheetsSubs = await fetchFromSheet();
       // Re-attach photos from the local photo store (photos are never sent to Sheets)
+      // Google Sheets returns numeric 0 for empty-or-zero cells; normalize to string
+      // so falsy checks like `s.spct || '—'` treat 0 as a real value, not "no data"
+      const normStr = v => (v === null || v === undefined || v === '') ? '' : String(v);
       displaySubs = sheetsSubs.map(sr => {
         const photoMap = photoStore[`${sr.outlet}|${sr.date}|${sr.auditor}`];
-        if (!photoMap) return sr;
+        const norm = {...sr, spct: normStr(sr.spct), sval: normStr(sr.sval), sqty: normStr(sr.sqty), sale: normStr(sr.sale)};
+        if (!photoMap) return norm;
         return {
-          ...sr,
-          issues: sr.issues.map(si => {
+          ...norm,
+          issues: norm.issues.map(si => {
             const photos = photoMap[si.label];
             return (photos && photos.length) ? {...si, photos} : si;
           })
