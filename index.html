@@ -1046,6 +1046,7 @@ function saveLists() {
 const checkStates = {};
 const photoStates = {}; // {checkId: [base64, ...]}
 const submissions = JSON.parse(localStorage.getItem('kfl_submissions') || '[]');
+const photoStore = JSON.parse(localStorage.getItem('kfl_photo_store') || '{}'); // {key: {label: [base64,...]}} — never overwritten by Sheets
 let checkModalIdx = -1;
 let currentAuditType = 'stock';
 
@@ -1374,6 +1375,11 @@ function submitAudit() {
   const entry = {auditType:currentAuditType,auditor,outlet,date,cluster,area:document.getElementById('f-area').value,qtr:document.getElementById('f-qtr').value,month:document.getElementById('f-month').value,watchedDate:isCctv?(document.getElementById('f-watched-date').value||''):'',watchType:isCctv?(document.getElementById('f-watch-type').value||''):'',ecIssue:isEcommerce?(document.getElementById('f-ec-issue').value.trim()||''):'',ecOrder:isEcommerce?(document.getElementById('f-ec-order').value.trim()||''):'',ecStoreIssue:isEcommerce?(document.getElementById('f-ec-store-issue').value||''):'',ecIssueDate:isEcommerce?(document.getElementById('f-ec-issue-date').value||''):'',spct:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-spct').value.replace(/%/g,'').trim(),sval:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sval').value,sqty:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sqty').value,sale:(isSurprise||isCctv||isEcommerce)?'':document.getElementById('f-sale').value,score,answered,issues,checklistSnapshot,ts:new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
+  // Persist photos separately so they survive Sheets overwrites of kfl_submissions
+  const photoKey = `${entry.ts}|${entry.outlet}|${entry.auditor}`;
+  const photoMap = {};
+  entry.issues.forEach(i => { if (i.photos && i.photos.length) photoMap[i.label] = i.photos; });
+  if (Object.keys(photoMap).length) { photoStore[photoKey] = photoMap; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
   syncToSheet(sheetsEntry);
   const cnt=submissions.length;
@@ -1456,21 +1462,17 @@ async function renderSummary() {
     content.style.display = 'none';
     try {
       const sheetsSubs = await fetchFromSheet();
-      // Merge local photos into Sheets data (photos are stored locally only, not synced to Sheets)
+      // Re-attach photos from the local photo store (photos are never sent to Sheets)
       displaySubs = sheetsSubs.map(sr => {
-        const local = submissions.find(l =>
-          l.ts === sr.ts && l.outlet === sr.outlet && l.auditor === sr.auditor
-        );
-        if (local && local.issues) {
-          return {
-            ...sr,
-            issues: sr.issues.map(si => {
-              const li = local.issues.find(i => i.label === si.label);
-              return (li && li.photos && li.photos.length) ? {...si, photos: li.photos} : si;
-            })
-          };
-        }
-        return sr;
+        const photoMap = photoStore[`${sr.ts}|${sr.outlet}|${sr.auditor}`];
+        if (!photoMap) return sr;
+        return {
+          ...sr,
+          issues: sr.issues.map(si => {
+            const photos = photoMap[si.label];
+            return (photos && photos.length) ? {...si, photos} : si;
+          })
+        };
       });
       localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
       source.textContent = '— from Google Sheets';
@@ -2084,6 +2086,8 @@ function deleteEntry(idx) {
   }
   displaySubs.splice(idx, 1);
   localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
+  const pk = `${s.ts}|${s.outlet}|${s.auditor}`;
+  if (photoStore[pk]) { delete photoStore[pk]; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   renderTable();
   renderGapAnalysis(getFilteredRows());
   // update metrics
