@@ -919,7 +919,7 @@ function doGet(e) {
     var dateStr = dateVal instanceof Date
       ? Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd')
       : String(dateVal);
-    var photoKey = tsStr + '|' + String(row[2]) + '|' + String(row[1]);
+    var photoKey = String(row[2]) + '|' + dateStr + '|' + String(row[1]);
     var issuePhotos = photoLookup[photoKey] || {};
     var issueStr = row[15] ? String(row[15]) : '';
     var issues = issueStr ? issueStr.split(' | ').map(function(s) {
@@ -1416,7 +1416,7 @@ function submitAudit() {
   submissions.push(entry);
   localStorage.setItem('kfl_submissions', JSON.stringify(submissions));
   // Persist photos separately so they survive Sheets overwrites of kfl_submissions
-  const photoKey = `${entry.ts}|${entry.outlet}|${entry.auditor}`;
+  const photoKey = `${entry.outlet}|${entry.date}|${entry.auditor}`;
   const photoMap = {};
   entry.issues.forEach(i => { if (i.photos && i.photos.length) photoMap[i.label] = i.photos; });
   if (Object.keys(photoMap).length) { photoStore[photoKey] = photoMap; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
@@ -1506,7 +1506,7 @@ async function renderSummary() {
       const sheetsSubs = await fetchFromSheet();
       // Re-attach photos from the local photo store (photos are never sent to Sheets)
       displaySubs = sheetsSubs.map(sr => {
-        const photoMap = photoStore[`${sr.ts}|${sr.outlet}|${sr.auditor}`];
+        const photoMap = photoStore[`${sr.outlet}|${sr.date}|${sr.auditor}`];
         if (!photoMap) return sr;
         return {
           ...sr,
@@ -2148,7 +2148,7 @@ function deleteEntry(idx) {
   }
   displaySubs.splice(idx, 1);
   localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
-  const pk = `${s.ts}|${s.outlet}|${s.auditor}`;
+  const pk = `${s.outlet}|${s.date}|${s.auditor}`;
   if (photoStore[pk]) { delete photoStore[pk]; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   renderTable();
   renderGapAnalysis(getFilteredRows());
