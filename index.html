@@ -807,6 +807,27 @@
     cfg.getRange(2,1).setValue(JSON.stringify(d.lists));
     return ok();
   }
+  if (d.action === 'savePhotos') {
+    var photosSheet = ss.getSheetByName('_photos') || ss.insertSheet('_photos');
+    if (photosSheet.getLastRow() === 0) photosSheet.appendRow(['Key','Label','DriveURL']);
+    var folder = getOrCreateFolder('KFL Audit Photos');
+    var urls = {};
+    (d.photos || []).forEach(function(p) {
+      try {
+        var base64 = p.data.replace(/^data:image\/\w+;base64,/, '');
+        var blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg',
+          d.key.replace(/[|\/\\:*?"&lt;&gt;]/g, '_').substring(0,60) + '_' +
+          p.label.replace(/[^a-zA-Z0-9 ]/g,'_').substring(0,30) + '.jpg');
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        var url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+        photosSheet.appendRow([d.key, p.label, url]);
+        urls[p.label] = url;
+      } catch(err) {}
+    });
+    return ContentService.createTextOutput(JSON.stringify({status:'ok', urls:urls}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
   if (d.action === 'update') {
     sheet.getRange(d.rowIndex, 1, 1, 22).setValues([[
@@ -840,6 +861,10 @@ function ok() {
   return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
     .setMimeType(ContentService.MimeType.JSON);
 }
+function getOrCreateFolder(name) {
+  var folders = DriveApp.getFoldersByName(name);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(name);
+}
 
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -867,6 +892,17 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({lists:{}}))
       .setMimeType(ContentService.MimeType.JSON);
   }
+  // Build photo lookup from _photos sheet
+  var photoLookup = {};
+  var photosSheet = ss.getSheetByName('_photos');
+  if (photosSheet && photosSheet.getLastRow() > 1) {
+    photosSheet.getDataRange().getValues().slice(1).forEach(function(row) {
+      var key = String(row[0]), label = String(row[1]), url = String(row[2]);
+      if (!photoLookup[key]) photoLookup[key] = {};
+      if (!photoLookup[key][label]) photoLookup[key][label] = [];
+      photoLookup[key][label].push(url);
+    });
+  }
   var sheet = ss.getActiveSheet();
   var data = sheet.getDataRange().getValues();
   if (data.length <= 1) {
@@ -875,11 +911,6 @@ function doGet(e) {
   }
   var tz = Session.getScriptTimeZone();
   var rows = data.slice(1).map(function(row, idx) {
-    var issueStr = row[15] ? String(row[15]) : '';
-    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
-      var i = s.indexOf(': ');
-      return i > -1 ? {label:s.substring(0,i), note:s.substring(i+2)} : {label:s, note:''};
-    }) : [];
     var ts = row[0];
     var tsStr = ts instanceof Date
       ? Utilities.formatDate(ts, tz, 'dd MMM, hh:mm a')
@@ -888,6 +919,15 @@ function doGet(e) {
     var dateStr = dateVal instanceof Date
       ? Utilities.formatDate(dateVal, tz, 'yyyy-MM-dd')
       : String(dateVal);
+    var photoKey = tsStr + '|' + String(row[2]) + '|' + String(row[1]);
+    var issuePhotos = photoLookup[photoKey] || {};
+    var issueStr = row[15] ? String(row[15]) : '';
+    var issues = issueStr ? issueStr.split(' | ').map(function(s) {
+      var i = s.indexOf(': ');
+      var label = i > -1 ? s.substring(0,i) : s;
+      var note  = i > -1 ? s.substring(i+2) : '';
+      return {label:label, note:note, photos:issuePhotos[label]||[]};
+    }) : [];
     return {
       _row: idx + 2,
       ts: tsStr, auditor: row[1], outlet: row[2], date: dateStr,
@@ -1382,6 +1422,8 @@ function submitAudit() {
   if (Object.keys(photoMap).length) { photoStore[photoKey] = photoMap; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
   syncToSheet(sheetsEntry);
+  // Upload photos to Google Drive (async — updates photoStore with Drive URLs when done)
+  if (SHEETS_URL && Object.keys(photoMap).length) savePhotosToCloud(photoKey, photoMap);
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
   document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
@@ -1968,6 +2010,26 @@ function syncToSheet(entry) {
       dot.className = 'sync-dot err';
       setTimeout(() => { dot.className = 'sync-dot ok'; }, 5000);
     });
+}
+
+function savePhotosToCloud(photoKey, photoMap) {
+  if (!SHEETS_URL) return;
+  const photos = Object.entries(photoMap).flatMap(([label, imgs]) =>
+    imgs.map(data => ({label, data}))
+  );
+  if (!photos.length) return;
+  fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'savePhotos', key:photoKey, photos})})
+    .then(r => r.json())
+    .then(data => {
+      if (data.urls) {
+        // Replace base64 in photoStore with Drive URLs
+        const updated = {};
+        Object.entries(data.urls).forEach(([label, url]) => { updated[label] = [url]; });
+        photoStore[photoKey] = {...(photoStore[photoKey]||{}), ...updated};
+        localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore));
+      }
+    })
+    .catch(() => {}); // silently keep local base64 as fallback
 }
 
 // ══════════════════════════════════════════════════════
