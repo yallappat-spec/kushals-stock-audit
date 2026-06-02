@@ -2132,11 +2132,13 @@ function saveEdit() {
     score, answered, issues
   };
   displaySubs[editIdx] = updated;
+  localStorage.setItem('kfl_submissions', JSON.stringify([...displaySubs].reverse()));
   if (SHEETS_URL && s._row) {
     fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'update', rowIndex:s._row, ...updated})}).catch(()=>{});
   }
   closeEditModal();
   renderTable();
+  renderShrinkageTable();
   renderGapAnalysis(getFilteredRows());
 }
 
