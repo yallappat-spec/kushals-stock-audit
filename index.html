@@ -761,9 +761,24 @@
 
       <!-- AUDITOR PERFORMANCE VIEW -->
       <div id="sub-view-auditor" style="display:none;">
-        <div class="card" style="margin-bottom:14px;" id="auditor-perf-card">
-          <div style="font-size:13px;font-weight:600;margin-bottom:16px;">Auditor Performance Summary</div>
-          <div id="auditor-perf-content"></div>
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">Auditor Performance Summary</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="ap-year-filter" onchange="renderAuditorPerformance()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Years</option>
+            </select>
+            <select id="ap-month-filter" onchange="renderAuditorPerformance()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px;">
+          <div style="overflow-x:auto;"><table class="data-table" id="auditor-perf-table"></table></div>
         </div>
       </div>
     </div>
@@ -1814,59 +1829,64 @@ function renderGapAnalysis(rows) {
 }
 
 function renderAuditorPerformance() {
-  const rows = displaySubs;
-  const el = document.getElementById('auditor-perf-content');
-  if (!rows.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No audit data available.</p>'; return; }
+  const tbl = document.getElementById('auditor-perf-table');
+
+  // Populate year filter from data
+  const yearSel = document.getElementById('ap-year-filter');
+  const years = [...new Set(displaySubs.map(s => (s.date||'').substring(0,4)).filter(Boolean))].sort().reverse();
+  const curYear = yearSel.value;
+  yearSel.innerHTML = '<option value="">All Years</option>' + years.map(y => `<option${y===curYear?' selected':''}>${y}</option>`).join('');
+
+  const selYear  = yearSel.value;
+  const selMonth = document.getElementById('ap-month-filter').value;
+
+  const rows = displaySubs.filter(s => {
+    if (selYear  && (s.date||'').substring(0,4) !== selYear)  return false;
+    if (selMonth && s.month !== selMonth) return false;
+    return true;
+  });
+
+  if (!rows.length) {
+    tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
+    return;
+  }
 
   // Build per-auditor stats
   const map = {};
   rows.forEach(s => {
     const a = s.auditor || 'Unknown';
-    if (!map[a]) map[a] = { stock:0, surprise:0, cctv:0, ecommerce:0, totalIssues:0, issueMap:{}, scores:[] };
+    if (!map[a]) map[a] = { stock:0, surprise:0, cctv:0, totalIssues:0 };
     const t = s.auditType || 'stock';
-    map[a][t] = (map[a][t] || 0) + 1;
+    if (t === 'stock')    map[a].stock++;
+    else if (t === 'surprise') map[a].surprise++;
+    else if (t === 'cctv')    map[a].cctv++;
     map[a].totalIssues += s.issues.length;
-    s.issues.forEach(i => { map[a].issueMap[i.label] = (map[a].issueMap[i.label]||0)+1; });
-    if (s.score !== null && s.score !== '') map[a].scores.push(Number(s.score));
   });
 
   const auditors = Object.keys(map).sort();
-  el.innerHTML = auditors.map(name => {
+  tbl.innerHTML = `<thead><tr>
+    <th>Auditor</th>
+    <th style="text-align:center;">Stock Audits</th>
+    <th style="text-align:center;">Surprise Audits</th>
+    <th style="text-align:center;">CCTV Audits</th>
+    <th style="text-align:center;">Total Audits</th>
+    <th style="text-align:center;">Total Issues</th>
+    <th style="text-align:center;">Issue %</th>
+  </tr></thead><tbody>${auditors.map(name => {
     const d = map[name];
-    const total = d.stock + d.surprise + d.cctv + d.ecommerce;
-    const avg = d.scores.length ? Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length) : null;
-    const avgColor = avg === null ? 'var(--text-muted)' : avg >= 80 ? 'var(--green)' : avg >= 60 ? 'var(--amber)' : 'var(--red)';
-    const topIssues = Object.entries(d.issueMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    const maxIssue = topIssues[0]?.[1] || 1;
-    return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:var(--text);">${name}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${total} audit${total!==1?'s':''} total</div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          ${d.stock ? `<span style="background:#F0EDE6;color:#6B6B66;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">📦 Stock: ${d.stock}</span>` : ''}
-          ${d.surprise ? `<span style="background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">⚡ Surprise: ${d.surprise}</span>` : ''}
-          ${d.cctv ? `<span style="background:#F3E8FF;color:#6B21A8;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">📹 CCTV: ${d.cctv}</span>` : ''}
-          ${d.ecommerce ? `<span style="background:#CCFBF1;color:#0F766E;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">🛒 Ecommerce: ${d.ecommerce}</span>` : ''}
-          <span style="background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px;font-family:'DM Mono',monospace;color:${avgColor};">${avg !== null ? 'Avg: '+avg+'%' : 'No score'}</span>
-          <span style="background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px;color:var(--red);">${d.totalIssues} issue${d.totalIssues!==1?'s':''}</span>
-        </div>
-      </div>
-      ${topIssues.length ? `<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Top Issues Found</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;">
-        ${topIssues.map(([label,cnt]) => `<div style="margin-bottom:6px;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;">
-            <span style="color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${label}</span>
-            <span style="font-family:'DM Mono',monospace;color:var(--red);font-weight:600;flex-shrink:0;margin-left:8px;">${cnt}</span>
-          </div>
-          <div style="height:4px;background:var(--border);border-radius:2px;">
-            <div style="height:4px;border-radius:2px;background:var(--red);width:${Math.round(cnt/maxIssue*100)}%;"></div>
-          </div>
-        </div>`).join('')}
-      </div>` : `<div style="font-size:12px;color:var(--green);font-weight:600;">✓ No issues found in any audit</div>`}
-    </div>`;
-  }).join('');
+    const total = d.stock + d.surprise + d.cctv;
+    const issuePct = total ? ((d.totalIssues / total) * 100).toFixed(1) : '0.0';
+    const pctColor = parseFloat(issuePct) === 0 ? 'var(--green)' : parseFloat(issuePct) <= 50 ? 'var(--amber)' : 'var(--red)';
+    return `<tr>
+      <td><strong style="font-size:13px;font-weight:600;">${name}</strong></td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;">${d.stock || '—'}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;">${d.surprise || '—'}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;">${d.cctv || '—'}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;">${total}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--red);font-weight:600;">${d.totalIssues}</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;color:${pctColor};">${issuePct}%</td>
+    </tr>`;
+  }).join('')}</tbody>`;
 }
 
 function switchSubTab(tab) {
