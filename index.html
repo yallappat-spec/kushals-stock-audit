@@ -1871,12 +1871,12 @@ function renderAuditorPerformance() {
     <th style="text-align:center;">CCTV Audits</th>
     <th style="text-align:center;">Total Audits</th>
     <th style="text-align:center;">Total Issues</th>
-    <th style="text-align:center;">Issue %</th>
+    <th style="text-align:center;">Issue Ratio</th>
   </tr></thead><tbody>${auditors.map(name => {
     const d = map[name];
     const total = d.stock + d.surprise + d.cctv;
-    const issuePct = total ? ((d.totalIssues / total) * 100).toFixed(1) : '0.0';
-    const pctColor = parseFloat(issuePct) === 0 ? 'var(--green)' : parseFloat(issuePct) <= 50 ? 'var(--amber)' : 'var(--red)';
+    const issuePct = total ? (d.totalIssues / total).toFixed(2) : '0.00';
+    const pctColor = parseFloat(issuePct) === 0 ? 'var(--green)' : parseFloat(issuePct) <= 1 ? 'var(--amber)' : 'var(--red)';
     return `<tr>
       <td><strong style="font-size:13px;font-weight:600;">${name}</strong></td>
       <td style="text-align:center;font-family:'DM Mono',monospace;">${d.stock || '—'}</td>
@@ -1884,7 +1884,7 @@ function renderAuditorPerformance() {
       <td style="text-align:center;font-family:'DM Mono',monospace;">${d.cctv || '—'}</td>
       <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;">${total}</td>
       <td style="text-align:center;font-family:'DM Mono',monospace;color:var(--red);font-weight:600;">${d.totalIssues}</td>
-      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;color:${pctColor};">${issuePct}%</td>
+      <td style="text-align:center;font-family:'DM Mono',monospace;font-weight:700;color:${pctColor};">${issuePct}</td>
     </tr>`;
   }).join('')}</tbody>`;
 }
