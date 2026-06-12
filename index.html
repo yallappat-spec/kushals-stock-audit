@@ -1837,6 +1837,19 @@ function renderGapAnalysis(rows) {
     </div>`;
 }
 
+function renderAuditorMetrics(rows) {
+  const totalAudits = rows.length;
+  const totalIssues = rows.reduce((a,s) => a + s.issues.length, 0);
+  const ratio = totalAudits ? (totalIssues / totalAudits).toFixed(2) : '0.00';
+  const ratioColor = parseFloat(ratio) === 0 ? 'var(--green)' : parseFloat(ratio) <= 1 ? 'var(--amber)' : 'var(--red)';
+  const auditorCount = new Set(rows.map(s => s.auditor || 'Unknown')).size;
+  document.getElementById('metric-row').innerHTML =
+    `<div class="metric"><div class="metric-val">${auditorCount}</div><div class="metric-lbl">Auditors</div></div>` +
+    `<div class="metric"><div class="metric-val">${totalAudits}</div><div class="metric-lbl">Overall Audits</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">No. of Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:${ratioColor};">${ratio}</div><div class="metric-lbl">Issue Ratio</div></div>`;
+}
+
 function renderAuditorPerformance() {
   const tbl = document.getElementById('auditor-perf-table');
 
@@ -1854,6 +1867,8 @@ function renderAuditorPerformance() {
     if (selMonth && s.month !== selMonth) return false;
     return true;
   });
+
+  renderAuditorMetrics(rows);
 
   if (!rows.length) {
     tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
