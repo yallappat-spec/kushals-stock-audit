@@ -787,6 +787,12 @@
             <select id="ap-auditor-filter" onchange="renderAuditorPerformance()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
               <option value="">All Auditors</option>
             </select>
+            <select id="ap-type-filter" onchange="renderAuditorPerformance()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Audit Types</option>
+              <option value="stock">Stock Audit</option>
+              <option value="surprise">Surprise Audit</option>
+              <option value="cctv">CCTV Audit</option>
+            </select>
           </div>
         </div>
         <div class="card" style="margin-bottom:14px;">
@@ -1871,11 +1877,13 @@ function renderAuditorPerformance() {
   const selYear    = yearSel.value;
   const selMonth   = document.getElementById('ap-month-filter').value;
   const selAuditor = audSel.value;
+  const selType    = document.getElementById('ap-type-filter').value;
 
   const rows = displaySubs.filter(s => {
     if (selYear    && (s.date||'').substring(0,4) !== selYear)  return false;
     if (selMonth   && s.month !== selMonth) return false;
     if (selAuditor && (s.auditor || 'Unknown') !== selAuditor) return false;
+    if (selType    && (s.auditType || 'stock') !== selType) return false;
     return true;
   });
 
