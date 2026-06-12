@@ -928,20 +928,24 @@
     if (photosSheet.getLastRow() === 0) photosSheet.appendRow(['Key','Label','DriveURL']);
     var folder = getOrCreateFolder('KFL Audit Photos');
     var urls = {};
+    var errors = [];
     (d.photos || []).forEach(function(p) {
       try {
-        var base64 = p.data.replace(/^data:image\/\w+;base64,/, '');
-        var blob = Utilities.newBlob(Utilities.base64Decode(base64), 'image/jpeg',
-          d.key.replace(/[|\/\\:*?"&lt;&gt;]/g, '_').substring(0,60) + '_' +
+        var rawBase64 = p.data.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
+        var decoded = Utilities.base64Decode(rawBase64);
+        var blob = Utilities.newBlob(decoded, 'image/jpeg',
+          d.key.replace(/[|\\\/:*?"<>]/g, '_').substring(0,60) + '_' +
           p.label.replace(/[^a-zA-Z0-9 ]/g,'_').substring(0,30) + '.jpg');
         var file = folder.createFile(blob);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         var url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
         photosSheet.appendRow([d.key, p.label, url]);
         urls[p.label] = url;
-      } catch(err) {}
+      } catch(err) {
+        errors.push(String(err));
+      }
     });
-    return ContentService.createTextOutput(JSON.stringify({status:'ok', urls:urls}))
+    return ContentService.createTextOutput(JSON.stringify({status: errors.length ? 'partial' : 'ok', urls:urls, errors:errors}))
       .setMimeType(ContentService.MimeType.JSON);
   }
   if (d.action === 'delete') { sheet.deleteRow(d.rowIndex); return ok(); }
@@ -2357,23 +2361,42 @@ function syncToSheet(entry) {
     });
 }
 
-function savePhotosToCloud(photoKey, photoMap) {
-  if (!SHEETS_URL) return Promise.resolve();
-  // Only upload base64 photos (Drive URLs already synced)
+async function savePhotosToCloud(photoKey, photoMap) {
+  if (!SHEETS_URL) return;
+  // Collect only base64 photos (skip already-uploaded Drive URLs)
   const photos = Object.entries(photoMap).flatMap(([label, imgs]) =>
     imgs.filter(d => d && d.startsWith('data:')).map(data => ({label, data}))
   );
-  if (!photos.length) return Promise.resolve();
-  return fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'savePhotos', key:photoKey, photos})})
-    .then(r => r.json())
-    .then(data => {
-      if (data.urls) {
-        const updated = {};
-        Object.entries(data.urls).forEach(([label, url]) => { updated[label] = [url]; });
-        photoStore[photoKey] = {...(photoStore[photoKey]||{}), ...updated};
-        localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore));
+  if (!photos.length) return;
+
+  const updated = {};
+  // Upload one photo at a time to avoid payload size limits
+  for (const photo of photos) {
+    let success = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(SHEETS_URL, {
+          method: 'POST',
+          body: JSON.stringify({action:'savePhotos', key:photoKey, photos:[photo]})
+        });
+        const data = await res.json();
+        if (data.errors && data.errors.length) console.warn('Photo upload error:', data.errors);
+        if (data.urls && data.urls[photo.label]) {
+          updated[photo.label] = [data.urls[photo.label]];
+          success = true;
+          break;
+        }
+      } catch(e) {
+        if (attempt === 2) throw e;
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
       }
-    });
+    }
+    if (!success) throw new Error('Photo upload failed after retries');
+  }
+
+  // Save Drive URLs to photoStore replacing base64
+  photoStore[photoKey] = {...(photoStore[photoKey]||{}), ...updated};
+  localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore));
 }
 
 let _photoSyncTimer = null;
@@ -2385,7 +2408,7 @@ function showPhotoSyncStatus(state, photoKey, photoMap) {
     banner.style.background = '#EFF6FF';
     banner.style.borderBottom = '1px solid #BFDBFE';
     banner.style.color = '#1D4ED8';
-    banner.innerHTML = '<span style="animation:pulse 1s infinite;display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D4ED8;flex-shrink:0;"></span> Uploading photos to Google Drive… please wait.';
+    banner.innerHTML = '<span style="animation:pulse 1s infinite;display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D4ED8;flex-shrink:0;margin-right:4px;"></span> Uploading photos to Google Drive one by one… do not close this tab.';
   } else if (state === 'done') {
     banner.style.background = '#ECFDF5';
     banner.style.borderBottom = '1px solid #A7F3D0';
