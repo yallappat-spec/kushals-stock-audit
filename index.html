@@ -681,6 +681,7 @@
       <div style="display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0;">
         <button id="sub-tab-all" onclick="switchSubTab('all')" style="background:none;border:none;border-bottom:2.5px solid var(--accent);padding:8px 18px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">All Submissions</button>
         <button id="sub-tab-shrinkage" onclick="switchSubTab('shrinkage')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Shrinkage Summary</button>
+        <button id="sub-tab-auditor" onclick="switchSubTab('auditor')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Auditor Performance</button>
       </div>
 
       <!-- ALL SUBMISSIONS VIEW -->
@@ -755,6 +756,14 @@
         </div>
         <div class="card">
           <div style="overflow-x:auto;"><table class="data-table" id="shrinkage-table"></table></div>
+        </div>
+      </div>
+
+      <!-- AUDITOR PERFORMANCE VIEW -->
+      <div id="sub-view-auditor" style="display:none;">
+        <div class="card" style="margin-bottom:14px;" id="auditor-perf-card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:16px;">Auditor Performance Summary</div>
+          <div id="auditor-perf-content"></div>
         </div>
       </div>
     </div>
@@ -1804,17 +1813,76 @@ function renderGapAnalysis(rows) {
     </div>`;
 }
 
+function renderAuditorPerformance() {
+  const rows = displaySubs;
+  const el = document.getElementById('auditor-perf-content');
+  if (!rows.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No audit data available.</p>'; return; }
+
+  // Build per-auditor stats
+  const map = {};
+  rows.forEach(s => {
+    const a = s.auditor || 'Unknown';
+    if (!map[a]) map[a] = { stock:0, surprise:0, cctv:0, ecommerce:0, totalIssues:0, issueMap:{}, scores:[] };
+    const t = s.auditType || 'stock';
+    map[a][t] = (map[a][t] || 0) + 1;
+    map[a].totalIssues += s.issues.length;
+    s.issues.forEach(i => { map[a].issueMap[i.label] = (map[a].issueMap[i.label]||0)+1; });
+    if (s.score !== null && s.score !== '') map[a].scores.push(Number(s.score));
+  });
+
+  const auditors = Object.keys(map).sort();
+  el.innerHTML = auditors.map(name => {
+    const d = map[name];
+    const total = d.stock + d.surprise + d.cctv + d.ecommerce;
+    const avg = d.scores.length ? Math.round(d.scores.reduce((a,b)=>a+b,0)/d.scores.length) : null;
+    const avgColor = avg === null ? 'var(--text-muted)' : avg >= 80 ? 'var(--green)' : avg >= 60 ? 'var(--amber)' : 'var(--red)';
+    const topIssues = Object.entries(d.issueMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxIssue = topIssues[0]?.[1] || 1;
+    return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${name}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${total} audit${total!==1?'s':''} total</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          ${d.stock ? `<span style="background:#F0EDE6;color:#6B6B66;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">📦 Stock: ${d.stock}</span>` : ''}
+          ${d.surprise ? `<span style="background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">⚡ Surprise: ${d.surprise}</span>` : ''}
+          ${d.cctv ? `<span style="background:#F3E8FF;color:#6B21A8;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">📹 CCTV: ${d.cctv}</span>` : ''}
+          ${d.ecommerce ? `<span style="background:#CCFBF1;color:#0F766E;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;">🛒 Ecommerce: ${d.ecommerce}</span>` : ''}
+          <span style="background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px;font-family:'DM Mono',monospace;color:${avgColor};">${avg !== null ? 'Avg: '+avg+'%' : 'No score'}</span>
+          <span style="background:var(--surface);border:1px solid var(--border);font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px;color:var(--red);">${d.totalIssues} issue${d.totalIssues!==1?'s':''}</span>
+        </div>
+      </div>
+      ${topIssues.length ? `<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Top Issues Found</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;">
+        ${topIssues.map(([label,cnt]) => `<div style="margin-bottom:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;">
+            <span style="color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${label}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--red);font-weight:600;flex-shrink:0;margin-left:8px;">${cnt}</span>
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:2px;">
+            <div style="height:4px;border-radius:2px;background:var(--red);width:${Math.round(cnt/maxIssue*100)}%;"></div>
+          </div>
+        </div>`).join('')}
+      </div>` : `<div style="font-size:12px;color:var(--green);font-weight:600;">✓ No issues found in any audit</div>`}
+    </div>`;
+  }).join('');
+}
+
 function switchSubTab(tab) {
-  const isAll = tab === 'all';
-  document.getElementById('sub-view-all').style.display = isAll ? '' : 'none';
-  document.getElementById('sub-view-shrinkage').style.display = isAll ? 'none' : '';
-  document.getElementById('sub-tab-all').style.borderBottomColor = isAll ? 'var(--accent)' : 'transparent';
-  document.getElementById('sub-tab-all').style.color = isAll ? 'var(--text)' : 'var(--text-muted)';
-  document.getElementById('sub-tab-all').style.fontWeight = isAll ? '600' : '500';
-  document.getElementById('sub-tab-shrinkage').style.borderBottomColor = isAll ? 'transparent' : 'var(--accent)';
-  document.getElementById('sub-tab-shrinkage').style.color = isAll ? 'var(--text-muted)' : 'var(--text)';
-  document.getElementById('sub-tab-shrinkage').style.fontWeight = isAll ? '500' : '600';
-  if (isAll) { renderAllMetrics(getFilteredRows()); } else { renderShrinkageTable(); }
+  const tabs = ['all','shrinkage','auditor'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('sub-tab-' + t);
+    const view = document.getElementById('sub-view-' + t);
+    const active = t === tab;
+    btn.style.borderBottomColor = active ? 'var(--accent)' : 'transparent';
+    btn.style.color = active ? 'var(--text)' : 'var(--text-muted)';
+    btn.style.fontWeight = active ? '600' : '500';
+    view.style.display = active ? '' : 'none';
+  });
+  if (tab === 'all') { renderAllMetrics(getFilteredRows()); }
+  else if (tab === 'shrinkage') { renderShrinkageTable(); }
+  else if (tab === 'auditor') { renderAuditorPerformance(); }
 }
 
 function getShrinkageRows() {
