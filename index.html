@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kushal Audit Checklist</title>
 <link href="./Stock Audit 2025-26 — Kushals Fashion Jewellery_files/css2" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg:#F4F6FB; --surface:#FFFFFF;
@@ -191,6 +192,7 @@
   .empty-icon{font-size:44px;opacity:0.15;margin-bottom:14px;}
   .empty-state h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
   .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  @media(max-width:760px){.chart-grid{grid-template-columns:1fr !important;}}
 </style>
 </head>
 <body>
@@ -763,6 +765,16 @@
             </select>
           </div>
         </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="chart-grid">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Top 10 Outlets — Shrinkage Value</div>
+            <div style="height:300px;"><canvas id="sh-chart-outlets"></canvas></div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Monthly Shrinkage Trend</div>
+            <div style="height:300px;"><canvas id="sh-chart-trend"></canvas></div>
+          </div>
+        </div>
         <div class="card">
           <div style="overflow-x:auto;"><table class="data-table" id="shrinkage-table"></table></div>
         </div>
@@ -793,6 +805,16 @@
               <option value="surprise">Surprise Audit</option>
               <option value="cctv">CCTV Audit</option>
             </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="chart-grid">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Audits by Auditor &amp; Type</div>
+            <div style="height:320px;"><canvas id="ap-chart-audits"></canvas></div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Issues &amp; Issue Ratio by Auditor</div>
+            <div style="height:320px;"><canvas id="ap-chart-issues"></canvas></div>
           </div>
         </div>
         <div class="card" style="margin-bottom:14px;">
@@ -1846,6 +1868,82 @@ function renderGapAnalysis(rows) {
     </div>`;
 }
 
+/* ─── CHARTS ─── */
+const _charts = {};
+function makeChart(id, config) {
+  const el = document.getElementById(id);
+  if (!el || typeof Chart === 'undefined') return;
+  if (_charts[id]) _charts[id].destroy();
+  _charts[id] = new Chart(el.getContext('2d'), config);
+}
+const CHART_FONT = {family:"'DM Sans',sans-serif",size:11};
+const MONTH_ORDER = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderShrinkageCharts(rows) {
+  // Top 10 outlets by absolute shrinkage value
+  const byOutlet = {};
+  rows.forEach(s => { byOutlet[s.outlet] = (byOutlet[s.outlet]||0) + parseNum(s.sval); });
+  const top = Object.entries(byOutlet).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,10);
+  makeChart('sh-chart-outlets', {
+    type:'bar',
+    data:{labels:top.map(e=>e[0]),datasets:[{label:'Shrinkage Value (₹)',data:top.map(e=>e[1]),
+      backgroundColor:'rgba(220,38,38,0.75)',borderRadius:5,maxBarThickness:20}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+Math.round(c.raw).toLocaleString('en-IN')}}},
+      scales:{x:{ticks:{font:CHART_FONT,callback:v=>'₹'+Number(v).toLocaleString('en-IN')},grid:{color:'rgba(15,23,42,0.06)'}},
+              y:{ticks:{font:CHART_FONT},grid:{display:false}}}}
+  });
+
+  // Monthly trend: shrinkage value bars + shrinkage % line
+  const byMonth = {};
+  rows.forEach(s => {
+    const m = s.month; if (!m) return;
+    if (!byMonth[m]) byMonth[m] = {sval:0,sale:0};
+    byMonth[m].sval += parseNum(s.sval); byMonth[m].sale += parseNum(s.sale);
+  });
+  const months = MONTH_ORDER.filter(m => byMonth[m]);
+  makeChart('sh-chart-trend', {
+    data:{labels:months.map(m=>m.substring(0,3)),datasets:[
+      {type:'bar',label:'Shrinkage Value (₹)',data:months.map(m=>byMonth[m].sval),
+       backgroundColor:'rgba(79,70,229,0.65)',borderRadius:5,maxBarThickness:30,yAxisID:'y'},
+      {type:'line',label:'Shrinkage %',data:months.map(m=>byMonth[m].sale?+(byMonth[m].sval/byMonth[m].sale*100).toFixed(4):0),
+       borderColor:'#DC2626',backgroundColor:'#DC2626',tension:0.35,pointRadius:4,yAxisID:'y1'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:CHART_FONT,usePointStyle:true,boxWidth:8}}},
+      scales:{y:{position:'left',ticks:{font:CHART_FONT,callback:v=>'₹'+Number(v).toLocaleString('en-IN')},grid:{color:'rgba(15,23,42,0.06)'}},
+              y1:{position:'right',ticks:{font:CHART_FONT,callback:v=>v+'%'},grid:{display:false}},
+              x:{ticks:{font:CHART_FONT},grid:{display:false}}}}
+  });
+}
+
+function renderAuditorCharts(map) {
+  const names = Object.keys(map).sort();
+  makeChart('ap-chart-audits', {
+    type:'bar',
+    data:{labels:names,datasets:[
+      {label:'Stock',data:names.map(n=>map[n].stock),backgroundColor:'rgba(79,70,229,0.8)',borderRadius:4,maxBarThickness:26},
+      {label:'Surprise',data:names.map(n=>map[n].surprise),backgroundColor:'rgba(29,78,216,0.7)',borderRadius:4,maxBarThickness:26},
+      {label:'CCTV',data:names.map(n=>map[n].cctv),backgroundColor:'rgba(124,58,237,0.7)',borderRadius:4,maxBarThickness:26}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:CHART_FONT,usePointStyle:true,boxWidth:8}}},
+      scales:{x:{stacked:true,ticks:{font:CHART_FONT,maxRotation:45,minRotation:0},grid:{display:false}},
+              y:{stacked:true,ticks:{font:CHART_FONT,precision:0},grid:{color:'rgba(15,23,42,0.06)'}}}}
+  });
+
+  makeChart('ap-chart-issues', {
+    data:{labels:names,datasets:[
+      {type:'bar',label:'Total Issues',data:names.map(n=>map[n].totalIssues),
+       backgroundColor:'rgba(220,38,38,0.7)',borderRadius:4,maxBarThickness:26,yAxisID:'y'},
+      {type:'line',label:'Issue Ratio',data:names.map(n=>{const t=map[n].stock+map[n].surprise+map[n].cctv;return t?+(map[n].totalIssues/t).toFixed(2):0;}),
+       borderColor:'#F59E0B',backgroundColor:'#F59E0B',tension:0.35,pointRadius:4,yAxisID:'y1'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:CHART_FONT,usePointStyle:true,boxWidth:8}}},
+      scales:{y:{position:'left',ticks:{font:CHART_FONT,precision:0},grid:{color:'rgba(15,23,42,0.06)'}},
+              y1:{position:'right',ticks:{font:CHART_FONT},grid:{display:false}},
+              x:{ticks:{font:CHART_FONT,maxRotation:45,minRotation:0},grid:{display:false}}}}
+  });
+}
+
 function renderAuditorMetrics(rows) {
   const totalAudits = rows.length;
   const totalIssues = rows.reduce((a,s) => a + s.issues.length, 0);
@@ -1891,6 +1989,7 @@ function renderAuditorPerformance() {
 
   if (!rows.length) {
     tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
+    renderAuditorCharts({});
     return;
   }
 
@@ -1905,6 +2004,8 @@ function renderAuditorPerformance() {
     else if (t === 'cctv')    map[a].cctv++;
     map[a].totalIssues += s.issues.length;
   });
+
+  renderAuditorCharts(map);
 
   const auditors = Object.keys(map).sort();
   tbl.innerHTML = `<thead><tr>
@@ -1964,6 +2065,7 @@ function getShrinkageRows() {
 function renderShrinkageTable() {
   renderShrinkageMetrics();
   const rows = getShrinkageRows();
+  renderShrinkageCharts(rows);
   const tbl = document.getElementById('shrinkage-table');
   if (!rows.length) {
     tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>';
