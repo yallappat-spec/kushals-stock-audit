@@ -232,6 +232,9 @@
   </div>
 </div>
 
+<!-- PHOTO SYNC BANNER -->
+<div id="photo-sync-banner" style="display:none;position:sticky;top:70px;z-index:98;padding:9px 32px;font-size:13px;font-weight:500;align-items:center;gap:10px;"></div>
+
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo-box">KFL</div>
@@ -1578,8 +1581,12 @@ function submitAudit() {
   if (Object.keys(photoMap).length) { photoStore[photoKey] = photoMap; localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore)); }
   const sheetsEntry = {...entry, issues: entry.issues.map(i=>({label:i.label,note:i.note}))};
   syncToSheet(sheetsEntry);
-  // Upload photos to Google Drive (async — updates photoStore with Drive URLs when done)
-  if (SHEETS_URL && Object.keys(photoMap).length) savePhotosToCloud(photoKey, photoMap);
+  if (SHEETS_URL && Object.keys(photoMap).length) {
+    showPhotoSyncStatus('uploading');
+    savePhotosToCloud(photoKey, photoMap)
+      .then(() => showPhotoSyncStatus('done'))
+      .catch(() => showPhotoSyncStatus('failed', photoKey, photoMap));
+  }
   const cnt=submissions.length;
   document.getElementById('tab-count').textContent=cnt;
   document.getElementById('top-badge').textContent=cnt+' submission'+(cnt!==1?'s':'');
@@ -2351,23 +2358,56 @@ function syncToSheet(entry) {
 }
 
 function savePhotosToCloud(photoKey, photoMap) {
-  if (!SHEETS_URL) return;
+  if (!SHEETS_URL) return Promise.resolve();
+  // Only upload base64 photos (Drive URLs already synced)
   const photos = Object.entries(photoMap).flatMap(([label, imgs]) =>
-    imgs.map(data => ({label, data}))
+    imgs.filter(d => d && d.startsWith('data:')).map(data => ({label, data}))
   );
-  if (!photos.length) return;
-  fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'savePhotos', key:photoKey, photos})})
+  if (!photos.length) return Promise.resolve();
+  return fetch(SHEETS_URL, {method:'POST', body:JSON.stringify({action:'savePhotos', key:photoKey, photos})})
     .then(r => r.json())
     .then(data => {
       if (data.urls) {
-        // Replace base64 in photoStore with Drive URLs
         const updated = {};
         Object.entries(data.urls).forEach(([label, url]) => { updated[label] = [url]; });
         photoStore[photoKey] = {...(photoStore[photoKey]||{}), ...updated};
         localStorage.setItem('kfl_photo_store', JSON.stringify(photoStore));
       }
-    })
-    .catch(() => {}); // silently keep local base64 as fallback
+    });
+}
+
+let _photoSyncTimer = null;
+function showPhotoSyncStatus(state, photoKey, photoMap) {
+  const banner = document.getElementById('photo-sync-banner');
+  clearTimeout(_photoSyncTimer);
+  if (state === 'uploading') {
+    banner.style.display = 'flex';
+    banner.style.background = '#EFF6FF';
+    banner.style.borderBottom = '1px solid #BFDBFE';
+    banner.style.color = '#1D4ED8';
+    banner.innerHTML = '<span style="animation:pulse 1s infinite;display:inline-block;width:8px;height:8px;border-radius:50%;background:#1D4ED8;flex-shrink:0;"></span> Uploading photos to Google Drive… please wait.';
+  } else if (state === 'done') {
+    banner.style.background = '#ECFDF5';
+    banner.style.borderBottom = '1px solid #A7F3D0';
+    banner.style.color = '#047857';
+    banner.innerHTML = '✓ Photos uploaded to Google Drive successfully. Visible to all users.';
+    _photoSyncTimer = setTimeout(() => { banner.style.display = 'none'; }, 5000);
+  } else if (state === 'failed') {
+    banner.style.background = '#FEF2F2';
+    banner.style.borderBottom = '1px solid #FECACA';
+    banner.style.color = '#B91C1C';
+    banner.innerHTML = `⚠ Photos could not be uploaded to Google Drive — visible only on this device.
+      <button onclick="retryPhotoUpload('${photoKey}')" style="margin-left:12px;background:#B91C1C;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">↺ Retry Upload</button>`;
+  }
+}
+
+function retryPhotoUpload(photoKey) {
+  const photoMap = photoStore[photoKey];
+  if (!photoMap) return;
+  showPhotoSyncStatus('uploading');
+  savePhotosToCloud(photoKey, photoMap)
+    .then(() => showPhotoSyncStatus('done'))
+    .catch(() => showPhotoSyncStatus('failed', photoKey, photoMap));
 }
 
 // ══════════════════════════════════════════════════════
