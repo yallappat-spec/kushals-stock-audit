@@ -193,9 +193,44 @@
   .empty-state h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
   .filter-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
   @media(max-width:760px){.chart-grid{grid-template-columns:1fr !important;}}
+
+  /* LOGIN */
+  .login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#111C3D 0%,#1E2A5E 55%,#312E81 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.35);text-align:center;}
+  .login-logo{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#F5C04E,#E8963A);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#2B1A05;font-family:'DM Mono',monospace;margin:0 auto 18px;box-shadow:0 6px 18px rgba(232,150,58,0.4);}
+  .login-title{font-size:22px;font-weight:700;color:#0F172A;margin-bottom:4px;}
+  .login-sub{font-size:13px;color:#64748B;margin-bottom:30px;}
+  .login-field{text-align:left;margin-bottom:16px;}
+  .login-field label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+  .login-field input{width:100%;padding:11px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;color:#0F172A;background:#F8FAFC;transition:border-color 0.15s,box-shadow 0.15s;}
+  .login-field input:focus{outline:none;border-color:#4338CA;box-shadow:0 0 0 3px rgba(67,56,202,0.12);background:#fff;}
+  .login-btn{width:100%;padding:13px;background:linear-gradient(135deg,#4F46E5,#4338CA);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:6px;transition:opacity 0.15s,transform 0.1s,box-shadow 0.15s;box-shadow:0 4px 14px rgba(67,56,202,0.35);}
+  .login-btn:hover{opacity:0.92;transform:translateY(-1px);}
+  .login-error{background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;}
+  .btn-logout{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:4px 14px;font-size:12px;color:rgba(255,255,255,0.75);font-family:'DM Mono',monospace;cursor:pointer;transition:background 0.15s;}
+  .btn-logout:hover{background:rgba(255,100,100,0.25);color:#fca5a5;}
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">KFL</div>
+    <div class="login-title">Kushal Audit</div>
+    <div class="login-sub">Kushals Fashion Jewellery · Sign in to continue</div>
+    <div class="login-error" id="login-error">Incorrect User ID or Password. Please try again.</div>
+    <div class="login-field">
+      <label>User ID</label>
+      <input type="text" id="login-uid" placeholder="Enter your User ID" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-pwd" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="topbar-left">
@@ -211,6 +246,7 @@
       <span class="sync-dot" id="sync-dot"></span>
       <span id="sheets-btn-label">☁ Sheets</span>
     </button>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
   </div>
 </div>
 
@@ -1084,6 +1120,43 @@ function doGet(e) {
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════
+const AUTH_USER = 'Audit';
+const AUTH_PASS = 'Audit@123';
+
+function checkLogin() {
+  if (sessionStorage.getItem('kfl_auth') === 'ok') {
+    document.getElementById('login-overlay').style.display = 'none';
+  }
+}
+
+function doLogin() {
+  const uid = document.getElementById('login-uid').value.trim();
+  const pwd = document.getElementById('login-pwd').value;
+  const err = document.getElementById('login-error');
+  if (uid === AUTH_USER && pwd === AUTH_PASS) {
+    sessionStorage.setItem('kfl_auth', 'ok');
+    document.getElementById('login-overlay').style.display = 'none';
+    err.style.display = 'none';
+  } else {
+    err.style.display = 'block';
+    document.getElementById('login-pwd').value = '';
+    document.getElementById('login-pwd').focus();
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('kfl_auth');
+  document.getElementById('login-uid').value = '';
+  document.getElementById('login-pwd').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-overlay').style.display = 'flex';
+}
+
+checkLogin();
+
 // ══════════════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════════════
