@@ -784,6 +784,9 @@
               <option>May</option><option>June</option><option>July</option><option>August</option>
               <option>September</option><option>October</option><option>November</option><option>December</option>
             </select>
+            <select id="ap-auditor-filter" onchange="renderAuditorPerformance()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Auditors</option>
+            </select>
           </div>
         </div>
         <div class="card" style="margin-bottom:14px;">
@@ -1859,12 +1862,20 @@ function renderAuditorPerformance() {
   const curYear = yearSel.value;
   yearSel.innerHTML = '<option value="">All Years</option>' + years.map(y => `<option${y===curYear?' selected':''}>${y}</option>`).join('');
 
-  const selYear  = yearSel.value;
-  const selMonth = document.getElementById('ap-month-filter').value;
+  // Populate auditor filter from data
+  const audSel = document.getElementById('ap-auditor-filter');
+  const allAuditors = [...new Set(displaySubs.map(s => s.auditor || 'Unknown'))].sort();
+  const curAud = audSel.value;
+  audSel.innerHTML = '<option value="">All Auditors</option>' + allAuditors.map(a => `<option${a===curAud?' selected':''}>${a}</option>`).join('');
+
+  const selYear    = yearSel.value;
+  const selMonth   = document.getElementById('ap-month-filter').value;
+  const selAuditor = audSel.value;
 
   const rows = displaySubs.filter(s => {
-    if (selYear  && (s.date||'').substring(0,4) !== selYear)  return false;
-    if (selMonth && s.month !== selMonth) return false;
+    if (selYear    && (s.date||'').substring(0,4) !== selYear)  return false;
+    if (selMonth   && s.month !== selMonth) return false;
+    if (selAuditor && (s.auditor || 'Unknown') !== selAuditor) return false;
     return true;
   });
 
