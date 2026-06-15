@@ -165,7 +165,7 @@
   .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 
   /* SUMMARY */
-  .metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  .metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
   @media(max-width:600px){.metric-row{grid-template-columns:1fr 1fr;}}
   .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 14px;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;}
   .metric::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-grad);opacity:0.85;}
@@ -1629,13 +1629,10 @@ function renderAllMetrics(rows) {
   const total = rows.length;
   const clean = rows.filter(s => !s.issues.length).length;
   const totalIssues = rows.reduce((a,s) => a + s.issues.length, 0);
-  const scores = rows.filter(s => s.score !== null).map(s => s.score);
-  const avg = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
   document.getElementById('metric-row').innerHTML =
     `<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div>` +
     `<div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div>` +
-    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
-    `<div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>`;
 }
 
 function renderGapMetrics() {}
@@ -2584,9 +2581,7 @@ function deleteEntry(idx) {
   const total = displaySubs.length;
   const clean = displaySubs.filter(s=>!s.issues.length).length;
   const totalIssues = displaySubs.reduce((a,s)=>a+s.issues.length,0);
-  const scores = displaySubs.filter(s=>s.score!==null).map(s=>s.score);
-  const avg = scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
-  document.getElementById('metric-row').innerHTML=`<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div><div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div><div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div><div class="metric"><div class="metric-val">${avg!==null?avg+'%':'—'}</div><div class="metric-lbl">Avg Score</div></div>`;
+  document.getElementById('metric-row').innerHTML=`<div class="metric"><div class="metric-val">${total}</div><div class="metric-lbl">Stores Audited</div></div><div class="metric"><div class="metric-val" style="color:var(--green);">${clean}</div><div class="metric-lbl">No Issues</div></div><div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>`;
 }
 
 // ══════════════════════════════════════════════════════
