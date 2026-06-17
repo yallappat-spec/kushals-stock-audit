@@ -744,6 +744,7 @@
         <button id="sub-tab-shrinkage" onclick="switchSubTab('shrinkage')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Shrinkage Summary</button>
         <button id="sub-tab-auditor" onclick="switchSubTab('auditor')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Auditor Performance</button>
         <button id="sub-tab-issues" onclick="switchSubTab('issues')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Issues Report</button>
+        <button id="sub-tab-risk" onclick="switchSubTab('risk')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Risk Outlet Analysis</button>
       </div>
 
       <!-- ALL SUBMISSIONS VIEW -->
@@ -909,6 +910,58 @@
         </div>
         <div id="ir-metrics" class="metric-row" style="margin-bottom:14px;"></div>
         <div id="ir-content"></div>
+      </div>
+
+      <!-- RISK OUTLET ANALYSIS VIEW -->
+      <div id="sub-view-risk" style="display:none;">
+        <!-- Filters -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">Risk Outlet Analysis</span>
+            <button class="btn-primary" onclick="downloadRiskCSV()" style="font-size:13px;padding:7px 16px;">↓ Download Risk CSV</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="rk-qtr" onchange="renderRiskAnalysis()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="rk-month" onchange="renderRiskAnalysis()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+            <select id="rk-type" onchange="renderRiskAnalysis()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Audit Types</option>
+              <option value="stock">Stock Audit</option>
+              <option value="surprise">Surprise Audit</option>
+              <option value="cctv">CCTV Audit</option>
+            </select>
+            <select id="rk-risk" onchange="renderRiskAnalysis()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Risk Levels</option>
+              <option value="High">High Risk</option>
+              <option value="Medium">Medium Risk</option>
+              <option value="Low">Low Risk</option>
+            </select>
+          </div>
+        </div>
+        <!-- Risk metrics -->
+        <div id="rk-metrics" class="metric-row" style="margin-bottom:14px;"></div>
+        <!-- Charts -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="chart-grid">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Risk Distribution</div>
+            <div style="height:260px;display:flex;align-items:center;justify-content:center;"><canvas id="rk-chart-donut"></canvas></div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">Top High-Risk Outlets</div>
+            <div style="height:260px;"><canvas id="rk-chart-bar"></canvas></div>
+          </div>
+        </div>
+        <!-- Risk table -->
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="data-table" id="rk-table"></table></div>
+        </div>
       </div>
 
     </div>
@@ -2265,7 +2318,7 @@ function renderAuditorPerformance() {
 }
 
 function switchSubTab(tab) {
-  const tabs = ['all','shrinkage','auditor','issues'];
+  const tabs = ['all','shrinkage','auditor','issues','risk'];
   tabs.forEach(t => {
     const btn = document.getElementById('sub-tab-' + t);
     const view = document.getElementById('sub-view-' + t);
@@ -2276,9 +2329,162 @@ function switchSubTab(tab) {
     view.style.display = active ? '' : 'none';
   });
   if (tab === 'issues') renderIssuesReport();
+  else if (tab === 'risk') renderRiskAnalysis();
   if (tab === 'all') { renderAllMetrics(getFilteredRows()); }
   else if (tab === 'shrinkage') { renderShrinkageTable(); }
   else if (tab === 'auditor') { renderAuditorPerformance(); }
+}
+
+function getRiskScore(s) {
+  // Score each outlet: shrinkage (0-50 pts) + issues (0-30 pts) + compliance score (0-20 pts)
+  const spct = Math.abs(parseFloat(s.spct) || 0);
+  const issueCount = s.issues.length;
+  const score = s.score !== null && s.score !== '' ? Number(s.score) : null;
+  let pts = 0;
+  // Shrinkage points
+  if (spct >= 2) pts += 50;
+  else if (spct >= 1) pts += 30;
+  else if (spct > 0) pts += 15;
+  // Issue points
+  if (issueCount >= 5) pts += 30;
+  else if (issueCount >= 3) pts += 20;
+  else if (issueCount >= 1) pts += 10;
+  // Low compliance score
+  if (score !== null) {
+    if (score < 60) pts += 20;
+    else if (score < 80) pts += 10;
+  }
+  return pts;
+}
+
+function getRiskLevel(pts) {
+  if (pts >= 50) return 'High';
+  if (pts >= 20) return 'Medium';
+  return 'Low';
+}
+
+function getRiskStyle(level) {
+  if (level === 'High')   return { bg:'#FCEBEB', color:'#A32D2D', border:'#F7C1C1', badge:'background:#A32D2D;color:#fff;' };
+  if (level === 'Medium') return { bg:'#FAEEDA', color:'#854F0B', border:'#F5D6A0', badge:'background:#EF9F27;color:#fff;' };
+  return                         { bg:'#EAF3DE', color:'#3B6D11', border:'#C0DD97', badge:'background:#639922;color:#fff;' };
+}
+
+function getRiskRows() {
+  const qtr    = (document.getElementById('rk-qtr')||{value:''}).value;
+  const month  = (document.getElementById('rk-month')||{value:''}).value;
+  const type   = (document.getElementById('rk-type')||{value:''}).value;
+  const riskF  = (document.getElementById('rk-risk')||{value:''}).value;
+  return displaySubs
+    .filter(s => {
+      if (qtr   && s.qtr !== qtr) return false;
+      if (month && s.month !== month) return false;
+      if (type  && (s.auditType||'stock') !== type) return false;
+      return true;
+    })
+    .map(s => ({ ...s, _riskPts: getRiskScore(s), _riskLevel: getRiskLevel(getRiskScore(s)) }))
+    .filter(s => !riskF || s._riskLevel === riskF)
+    .sort((a,b) => b._riskPts - a._riskPts);
+}
+
+function renderRiskAnalysis() {
+  const rows = getRiskRows();
+  const high   = rows.filter(r => r._riskLevel === 'High').length;
+  const medium = rows.filter(r => r._riskLevel === 'Medium').length;
+  const low    = rows.filter(r => r._riskLevel === 'Low').length;
+
+  document.getElementById('rk-metrics').innerHTML =
+    `<div class="metric"><div class="metric-val" style="color:#A32D2D;">${high}</div><div class="metric-lbl">High Risk Outlets</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:#854F0B;">${medium}</div><div class="metric-lbl">Medium Risk Outlets</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:#3B6D11;">${low}</div><div class="metric-lbl">Low Risk Outlets</div></div>` +
+    `<div class="metric"><div class="metric-val">${rows.length}</div><div class="metric-lbl">Total Audits</div></div>`;
+
+  // Donut chart
+  makeChart('rk-chart-donut', {
+    type: 'doughnut',
+    data: {
+      labels: ['High Risk','Medium Risk','Low Risk'],
+      datasets: [{ data:[high,medium,low], backgroundColor:['#A32D2D','#EF9F27','#639922'], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:12 } } } } }
+  });
+
+  // Bar chart — top 10 high risk outlets by risk pts
+  const topOutlets = rows.filter(r => r._riskLevel === 'High').slice(0,10);
+  makeChart('rk-chart-bar', {
+    type: 'bar',
+    data: {
+      labels: topOutlets.map(r => r.outlet.length > 18 ? r.outlet.slice(0,18)+'…' : r.outlet),
+      datasets: [{
+        label: 'Risk Score',
+        data: topOutlets.map(r => r._riskPts),
+        backgroundColor: topOutlets.map(r => r._riskPts >= 70 ? '#A32D2D' : '#EF9F27'),
+        borderRadius: 5
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,0.05)' } }, y:{ ticks:{ font:{ size:11 } } } }
+    }
+  });
+
+  // Table
+  if (!rows.length) {
+    document.getElementById('rk-table').innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match the selected filters.</td></tr>';
+    return;
+  }
+  document.getElementById('rk-table').innerHTML =
+    `<thead><tr><th>#</th><th>Outlet</th><th>Auditor</th><th>Date</th><th>Shrinkage %</th><th>Issues</th><th>Score</th><th>Risk Level</th><th>Key Remarks</th></tr></thead>
+    <tbody>${rows.map((s,i) => {
+      const st = getRiskStyle(s._riskLevel);
+      const spctNum = parseFloat(s.spct) || 0;
+      const spctColor = spctNum < 0 ? 'var(--red)' : spctNum > 0 ? 'var(--amber)' : 'var(--green)';
+      const sc = s.score !== null && s.score !== '' ? Number(s.score) : null;
+      const scColor = sc === null ? 'var(--text-faint)' : sc >= 80 ? 'var(--green)' : sc >= 60 ? 'var(--amber)' : 'var(--red)';
+      const remarks = s.issues.filter(i => i.note).map(i => `<div style="font-size:11px;color:${st.color};padding:2px 0;">↳ <strong>${i.label}:</strong> ${i.note}</div>`).join('');
+      return `<tr style="background:${st.bg};">
+        <td style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;">${i+1}</td>
+        <td><strong style="font-size:13px;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);">${s.month||''} ${s.qtr||''}</span></td>
+        <td style="font-size:13px;">${s.auditor}</td>
+        <td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}</td>
+        <td style="font-family:'DM Mono',monospace;font-weight:600;color:${spctColor};">${s.spct ? String(s.spct).replace(/%$/,'')+'%' : '—'}</td>
+        <td style="font-family:'DM Mono',monospace;font-weight:700;color:${s.issues.length>0?'var(--red)':'var(--green)'};">${s.issues.length}</td>
+        <td style="font-family:'DM Mono',monospace;font-weight:600;color:${scColor};">${sc !== null ? sc+'%' : '—'}</td>
+        <td><span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;${st.badge}">${s._riskLevel} Risk</span><br><span style="font-size:10px;color:var(--text-faint);">Score: ${s._riskPts}</span></td>
+        <td style="max-width:220px;">${remarks || '<span style="font-size:11px;color:var(--text-faint);">No remarks</span>'}</td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function downloadRiskCSV() {
+  const rows = getRiskRows();
+  if (!rows.length) { alert('No data to export.'); return; }
+  const headers = ['Outlet','Auditor','Date','Month','Quarter','Audit Type','Shrinkage %','Issues Count','Score','Risk Level','Risk Score','Issue Points (Labels)','Remarks'];
+  const csvRows = [headers.join(',')];
+  rows.forEach(s => {
+    const labels = s.issues.map(i=>i.label).join('; ');
+    const remarks = s.issues.filter(i=>i.note).map(i=>i.label+': '+i.note).join('; ');
+    csvRows.push([
+      `"${(s.outlet||'').replace(/"/g,'""')}"`,
+      `"${(s.auditor||'').replace(/"/g,'""')}"`,
+      `"${s.date||''}"`,
+      `"${s.month||''}"`,
+      `"${s.qtr||''}"`,
+      `"${s.auditType||'stock'}"`,
+      `"${s.spct||''}"`,
+      s.issues.length,
+      s.score !== null && s.score !== '' ? s.score : '',
+      `"${s._riskLevel}"`,
+      s._riskPts,
+      `"${labels.replace(/"/g,'""')}"`,
+      `"${remarks.replace(/"/g,'""')}"`
+    ].join(','));
+  });
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `risk-analysis-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
 
 function getShrinkageRows() {
