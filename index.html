@@ -2374,14 +2374,26 @@ function getRiskRows() {
   const month  = (document.getElementById('rk-month')||{value:''}).value;
   const type   = (document.getElementById('rk-type')||{value:''}).value;
   const riskF  = (document.getElementById('rk-risk')||{value:''}).value;
-  return displaySubs
-    .filter(s => {
-      if (qtr   && s.qtr !== qtr) return false;
-      if (month && s.month !== month) return false;
-      if (type  && (s.auditType||'stock') !== type) return false;
-      return true;
-    })
-    .map(s => ({ ...s, _riskPts: getRiskScore(s), _riskLevel: getRiskLevel(getRiskScore(s)) }))
+
+  // Filter audits first
+  const filtered = displaySubs.filter(s => {
+    if (qtr   && s.qtr !== qtr) return false;
+    if (month && s.month !== month) return false;
+    if (type  && (s.auditType||'stock') !== type) return false;
+    return true;
+  });
+
+  // Group by outlet — keep the audit with the highest risk score per outlet
+  const outletMap = {};
+  filtered.forEach(s => {
+    const pts = getRiskScore(s);
+    const key = s.outlet;
+    if (!outletMap[key] || pts > outletMap[key]._riskPts) {
+      outletMap[key] = { ...s, _riskPts: pts, _riskLevel: getRiskLevel(pts) };
+    }
+  });
+
+  return Object.values(outletMap)
     .filter(s => !riskF || s._riskLevel === riskF)
     .sort((a,b) => b._riskPts - a._riskPts);
 }
