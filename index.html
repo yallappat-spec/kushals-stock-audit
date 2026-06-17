@@ -743,6 +743,7 @@
         <button id="sub-tab-all" onclick="switchSubTab('all')" style="background:none;border:none;border-bottom:2.5px solid var(--accent);padding:8px 18px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">All Submissions</button>
         <button id="sub-tab-shrinkage" onclick="switchSubTab('shrinkage')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Shrinkage Summary</button>
         <button id="sub-tab-auditor" onclick="switchSubTab('auditor')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Auditor Performance</button>
+        <button id="sub-tab-issues" onclick="switchSubTab('issues')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Issues Report</button>
       </div>
 
       <!-- ALL SUBMISSIONS VIEW -->
@@ -882,6 +883,39 @@
           <div style="overflow-x:auto;"><table class="data-table" id="auditor-perf-table"></table></div>
         </div>
       </div>
+
+      <!-- ISSUES REPORT VIEW -->
+      <div id="sub-view-issues" style="display:none;">
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">Issues Report</span>
+            <button class="btn-primary" onclick="downloadIssuesCSV()" style="font-size:13px;padding:7px 16px;">↓ Download CSV</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="ir-qtr" onchange="renderIssuesReport()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Quarters</option>
+              <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+            </select>
+            <select id="ir-month" onchange="renderIssuesReport()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Months</option>
+              <option>January</option><option>February</option><option>March</option><option>April</option>
+              <option>May</option><option>June</option><option>July</option><option>August</option>
+              <option>September</option><option>October</option><option>November</option><option>December</option>
+            </select>
+            <select id="ir-type" onchange="renderIssuesReport()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Audit Types</option>
+              <option value="stock">Stock Audit</option>
+              <option value="surprise">Surprise Audit</option>
+              <option value="cctv">CCTV Audit</option>
+              <option value="ecommerce">Ecommerce Packing</option>
+            </select>
+            <input type="text" id="ir-search" placeholder="🔍 Search outlet..." oninput="renderIssuesReport()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+          </div>
+        </div>
+        <div id="ir-metrics" class="metric-row" style="margin-bottom:14px;"></div>
+        <div id="ir-content"></div>
+      </div>
+
     </div>
   </div>
 
@@ -1799,6 +1833,77 @@ function renderIssuesDetail(rows) {
     </div>`).join('');
 }
 
+function getIssuesReportRows() {
+  const qtr    = (document.getElementById('ir-qtr')||{value:''}).value;
+  const month  = (document.getElementById('ir-month')||{value:''}).value;
+  const type   = (document.getElementById('ir-type')||{value:''}).value;
+  const search = (document.getElementById('ir-search')||{value:''}).value.toLowerCase();
+  return displaySubs.filter(s => {
+    if (s.issues.length === 0) return false;
+    if (qtr    && s.qtr !== qtr) return false;
+    if (month  && s.month !== month) return false;
+    if (type   && (s.auditType||'stock') !== type) return false;
+    if (search && !(s.outlet||'').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function renderIssuesReport() {
+  const rows = getIssuesReportRows();
+  const totalIssues = rows.reduce((a,s) => a + s.issues.length, 0);
+  document.getElementById('ir-metrics').innerHTML =
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${rows.length}</div><div class="metric-lbl">Stores with Issues</div></div>` +
+    `<div class="metric"><div class="metric-val" style="color:var(--red);">${totalIssues}</div><div class="metric-lbl">Total Issues</div></div>` +
+    `<div class="metric"><div class="metric-val">${displaySubs.length}</div><div class="metric-lbl">Total Audits</div></div>`;
+  const content = document.getElementById('ir-content');
+  if (!rows.length) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">✓</div><h3>No issues found</h3><p>No audits with issues match the selected filters.</p></div>';
+    return;
+  }
+  content.innerHTML = rows.map(s => `
+    <div class="store-issue-block" style="margin-bottom:12px;">
+      <div class="store-issue-header">
+        <div class="store-issue-name">${s.outlet}</div>
+        <span class="badge badge-r" style="font-size:11px;">${s.issues.length} issue${s.issues.length>1?'s':''}</span>
+        <span class="store-issue-meta">${s.auditor}&nbsp;|&nbsp;${s.date}&nbsp;|&nbsp;${s.month||''}${s.qtr?' '+s.qtr:''}</span>
+      </div>
+      <div class="store-issue-list">
+        ${s.issues.map((i,n) => `
+          <div class="store-issue-item">
+            <div class="store-issue-item-label">${n+1}. ${i.label}</div>
+            ${i.note ? `<div class="store-issue-item-note">Remarks: ${i.note}</div>` : '<div class="store-issue-item-note" style="opacity:0.5;">No remarks added</div>'}
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function downloadIssuesCSV() {
+  const rows = getIssuesReportRows();
+  if (!rows.length) { alert('No issues to export with the current filters.'); return; }
+  const headers = ['Outlet','Auditor','Date','Month','Quarter','Audit Type','Issue #','Checklist Point','Remarks'];
+  const csvRows = [headers.join(',')];
+  rows.forEach(s => {
+    s.issues.forEach((i, n) => {
+      csvRows.push([
+        `"${(s.outlet||'').replace(/"/g,'""')}"`,
+        `"${(s.auditor||'').replace(/"/g,'""')}"`,
+        `"${s.date||''}"`,
+        `"${s.month||''}"`,
+        `"${s.qtr||''}"`,
+        `"${s.auditType||'stock'}"`,
+        n+1,
+        `"${(i.label||'').replace(/"/g,'""')}"`,
+        `"${(i.note||'').replace(/"/g,'""')}"`
+      ].join(','));
+    });
+  });
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `issues-report-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
 function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
@@ -2165,7 +2270,7 @@ function renderAuditorPerformance() {
 }
 
 function switchSubTab(tab) {
-  const tabs = ['all','shrinkage','auditor'];
+  const tabs = ['all','shrinkage','auditor','issues'];
   tabs.forEach(t => {
     const btn = document.getElementById('sub-tab-' + t);
     const view = document.getElementById('sub-view-' + t);
@@ -2175,6 +2280,7 @@ function switchSubTab(tab) {
     btn.style.fontWeight = active ? '600' : '500';
     view.style.display = active ? '' : 'none';
   });
+  if (tab === 'issues') renderIssuesReport();
   if (tab === 'all') { renderAllMetrics(getFilteredRows()); }
   else if (tab === 'shrinkage') { renderShrinkageTable(); }
   else if (tab === 'auditor') { renderAuditorPerformance(); }
