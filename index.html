@@ -191,6 +191,14 @@
   .issue-item-row{background:#FFF5F5;border:1px solid #F7C1C1;border-radius:6px;padding:6px 10px;margin-top:5px;}
   .issue-item-label{font-size:12px;font-weight:600;color:#A32D2D;}
   .issue-item-note{font-size:11px;color:#7A2020;margin-top:2px;font-style:italic;}
+  .store-issue-block{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;}
+  .store-issue-header{background:var(--bg);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+  .store-issue-name{font-size:13px;font-weight:700;flex:1;}
+  .store-issue-meta{font-size:11px;color:var(--text-muted);}
+  .store-issue-list{padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
+  .store-issue-item{background:#FFF5F5;border:1px solid #F7C1C1;border-radius:7px;padding:9px 13px;}
+  .store-issue-item-label{font-size:12px;font-weight:600;color:#A32D2D;}
+  .store-issue-item-note{font-size:12px;color:#7A2020;margin-top:3px;}
   .empty-state{text-align:center;padding:55px 20px;color:var(--text-muted);}
   .empty-icon{font-size:44px;opacity:0.15;margin-bottom:14px;}
   .empty-state h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
@@ -769,12 +777,23 @@
             </select>
             <select id="f-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;"><option value="">All auditors</option></select>
             <input type="date" id="f-ec-date-filter" onchange="applyFilters()" title="Filter by Issue Date (Ecommerce)" style="font-size:13px;padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);">
+            <select id="f-issue-filter" onchange="applyFilters()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Records</option>
+              <option value="issues">Issues Only</option>
+              <option value="clean">Clean Only</option>
+            </select>
           </div>
         </div>
 
         <!-- SUBMISSIONS TABLE -->
         <div class="card" style="margin-bottom:14px;">
           <div style="overflow-x:auto;"><table class="data-table" id="sum-table"></table></div>
+        </div>
+
+        <!-- ISSUES DETAIL PANEL -->
+        <div class="card" id="issues-detail-card" style="display:none;margin-bottom:14px;">
+          <div class="card-title" style="margin-bottom:14px;">Issues Detail — All Stores</div>
+          <div id="issues-detail-content"></div>
         </div>
 
         <!-- GAP ANALYSIS -->
@@ -1729,6 +1748,7 @@ async function renderSummary() {
   // reset filters
   ['f-search','f-qtr-filter','f-month-filter','f-ec-date-filter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderTable();
+  renderIssuesDetail(displaySubs);
   renderGapAnalysis(displaySubs);
 }
 
@@ -1739,6 +1759,7 @@ function getFilteredRows() {
   const month     = document.getElementById('f-month-filter').value;
   const auditType  = (document.getElementById('f-audit-type-filter')||{value:''}).value;
   const ecDateF    = (document.getElementById('f-ec-date-filter')||{value:''}).value;
+  const issueF     = (document.getElementById('f-issue-filter')||{value:''}).value;
   return displaySubs.filter(s => {
     if (search    && !(s.outlet||'').toLowerCase().includes(search)) return false;
     if (auditor   && s.auditor !== auditor) return false;
@@ -1746,11 +1767,37 @@ function getFilteredRows() {
     if (month     && s.month !== month) return false;
     if (auditType && (s.auditType||'stock') !== auditType) return false;
     if (ecDateF   && s.ecIssueDate !== ecDateF) return false;
+    if (issueF === 'issues' && s.issues.length === 0) return false;
+    if (issueF === 'clean'  && s.issues.length > 0)  return false;
     return true;
   });
 }
 
-function applyFilters() { const filtered = getFilteredRows(); renderAllMetrics(filtered); renderTable(); renderGapAnalysis(filtered); }
+function applyFilters() { const filtered = getFilteredRows(); renderAllMetrics(filtered); renderTable(); renderIssuesDetail(filtered); renderGapAnalysis(filtered); }
+
+function renderIssuesDetail(rows) {
+  const card = document.getElementById('issues-detail-card');
+  const content = document.getElementById('issues-detail-content');
+  const issueF = (document.getElementById('f-issue-filter')||{value:''}).value;
+  const withIssues = rows.filter(s => s.issues.length > 0);
+  if (!withIssues.length || issueF === 'clean') { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  content.innerHTML = withIssues.map(s => `
+    <div class="store-issue-block">
+      <div class="store-issue-header">
+        <div class="store-issue-name">${s.outlet}</div>
+        <span class="badge badge-r" style="font-size:11px;">${s.issues.length} issue${s.issues.length>1?'s':''}</span>
+        <span class="store-issue-meta">${s.auditor} &nbsp;|&nbsp; ${s.date}</span>
+      </div>
+      <div class="store-issue-list">
+        ${s.issues.map((i,n) => `
+          <div class="store-issue-item">
+            <div class="store-issue-item-label">${n+1}. ${i.label}</div>
+            ${i.note ? `<div class="store-issue-item-note">Remarks: ${i.note}</div>` : '<div class="store-issue-item-note" style="opacity:0.5;">No remarks added</div>'}
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
 
 function renderTable() {
   const rows = getFilteredRows();
@@ -2544,6 +2591,7 @@ async function saveEdit() {
   closeEditModal();
   renderTable();
   renderShrinkageTable();
+  renderIssuesDetail(getFilteredRows());
   renderGapAnalysis(getFilteredRows());
   if (SHEETS_URL && s._row) {
     const dot = document.getElementById('sync-dot');
@@ -2579,6 +2627,7 @@ function deleteEntry(idx) {
   const _pe = JSON.parse(localStorage.getItem('kfl_pending_edits') || '{}');
   if (_pe[pk]) { delete _pe[pk]; localStorage.setItem('kfl_pending_edits', JSON.stringify(_pe)); }
   renderTable();
+  renderIssuesDetail(getFilteredRows());
   renderGapAnalysis(getFilteredRows());
   // update metrics
   const total = displaySubs.length;
