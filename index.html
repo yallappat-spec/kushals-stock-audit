@@ -2374,14 +2374,26 @@ function getRiskRows() {
   const month  = (document.getElementById('rk-month')||{value:''}).value;
   const type   = (document.getElementById('rk-type')||{value:''}).value;
   const riskF  = (document.getElementById('rk-risk')||{value:''}).value;
-  return displaySubs
-    .filter(s => {
-      if (qtr   && s.qtr !== qtr) return false;
-      if (month && s.month !== month) return false;
-      if (type  && (s.auditType||'stock') !== type) return false;
-      return true;
-    })
-    .map(s => ({ ...s, _riskPts: getRiskScore(s), _riskLevel: getRiskLevel(getRiskScore(s)) }))
+
+  // Filter audits first
+  const filtered = displaySubs.filter(s => {
+    if (qtr   && s.qtr !== qtr) return false;
+    if (month && s.month !== month) return false;
+    if (type  && (s.auditType||'stock') !== type) return false;
+    return true;
+  });
+
+  // Group by outlet — keep the audit with the highest risk score per outlet
+  const outletMap = {};
+  filtered.forEach(s => {
+    const pts = getRiskScore(s);
+    const key = s.outlet;
+    if (!outletMap[key] || pts > outletMap[key]._riskPts) {
+      outletMap[key] = { ...s, _riskPts: pts, _riskLevel: getRiskLevel(pts) };
+    }
+  });
+
+  return Object.values(outletMap)
     .filter(s => !riskF || s._riskLevel === riskF)
     .sort((a,b) => b._riskPts - a._riskPts);
 }
@@ -2434,14 +2446,13 @@ function renderRiskAnalysis() {
     return;
   }
   document.getElementById('rk-table').innerHTML =
-    `<thead><tr><th>#</th><th>Outlet</th><th>Auditor</th><th>Date</th><th>Shrinkage %</th><th>Issues</th><th>Score</th><th>Risk Level</th><th>Key Remarks</th></tr></thead>
+    `<thead><tr><th>#</th><th>Outlet</th><th>Auditor</th><th>Date</th><th>Shrinkage %</th><th>Issues</th><th>Score</th><th>Risk Level</th></tr></thead>
     <tbody>${rows.map((s,i) => {
       const st = getRiskStyle(s._riskLevel);
       const spctNum = parseFloat(s.spct) || 0;
       const spctColor = spctNum < 0 ? 'var(--red)' : spctNum > 0 ? 'var(--amber)' : 'var(--green)';
       const sc = s.score !== null && s.score !== '' ? Number(s.score) : null;
       const scColor = sc === null ? 'var(--text-faint)' : sc >= 80 ? 'var(--green)' : sc >= 60 ? 'var(--amber)' : 'var(--red)';
-      const remarks = s.issues.filter(i => i.note).map(i => `<div style="font-size:11px;color:${st.color};padding:2px 0;">↳ <strong>${i.label}:</strong> ${i.note}</div>`).join('');
       return `<tr style="background:${st.bg};">
         <td style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;">${i+1}</td>
         <td><strong style="font-size:13px;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);">${s.month||''} ${s.qtr||''}</span></td>
@@ -2451,7 +2462,6 @@ function renderRiskAnalysis() {
         <td style="font-family:'DM Mono',monospace;font-weight:700;color:${s.issues.length>0?'var(--red)':'var(--green)'};">${s.issues.length}</td>
         <td style="font-family:'DM Mono',monospace;font-weight:600;color:${scColor};">${sc !== null ? sc+'%' : '—'}</td>
         <td><span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;${st.badge}">${s._riskLevel} Risk</span><br><span style="font-size:10px;color:var(--text-faint);">Score: ${s._riskPts}</span></td>
-        <td style="max-width:220px;">${remarks || '<span style="font-size:11px;color:var(--text-faint);">No remarks</span>'}</td>
       </tr>`;
     }).join('')}</tbody>`;
 }
