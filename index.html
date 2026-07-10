@@ -745,6 +745,7 @@
         <button id="sub-tab-auditor" onclick="switchSubTab('auditor')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Auditor Performance</button>
         <button id="sub-tab-issues" onclick="switchSubTab('issues')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Issues Report</button>
         <button id="sub-tab-risk" onclick="switchSubTab('risk')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Risk Outlet Analysis</button>
+        <button id="sub-tab-redflag" onclick="switchSubTab('redflag')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">🚩 Red Flags <span id="redflag-count-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:5px;font-family:'DM Mono',monospace;font-weight:600;"></span></button>
       </div>
 
       <!-- ALL SUBMISSIONS VIEW -->
@@ -961,6 +962,27 @@
         <!-- Risk table -->
         <div class="card">
           <div style="overflow-x:auto;"><table class="data-table" id="rk-table"></table></div>
+        </div>
+      </div>
+
+      <!-- RED FLAGS VIEW -->
+      <div id="sub-view-redflag" style="display:none;">
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:13px;font-weight:600;">🚩 Red Flags — Auditor Rotation</span>
+            <button class="btn-primary" onclick="downloadRedFlagsCSV()" style="font-size:13px;padding:7px 16px;">↓ Download Red Flags CSV</button>
+          </div>
+          <div class="info-pill" style="margin-bottom:12px;">ⓘ A red flag is raised when the <strong>same auditor</strong> performs <strong>two or more consecutive audits</strong> (Stock or Surprise) at the <strong>same store</strong>, in date order. Auditors should rotate between stores.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="text" id="rf-search" placeholder="🔍 Search outlet..." oninput="renderRedFlags()" style="flex:1;min-width:160px;font-size:13px;padding:7px 12px;">
+            <select id="rf-auditor" onchange="renderRedFlags()" style="width:auto;font-size:13px;padding:7px 30px 7px 11px;">
+              <option value="">All Auditors</option>
+            </select>
+          </div>
+        </div>
+        <div id="rf-metrics" class="metric-row" style="margin-bottom:14px;"></div>
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="data-table" id="rf-table"></table></div>
         </div>
       </div>
 
@@ -1823,6 +1845,7 @@ async function renderSummary() {
 
   renderAllMetrics();
   renderGapMetrics();
+  updateRedFlagBadge();
 
   const ff = document.getElementById('f-filter');
   const auditors = [...new Set(displaySubs.map(s=>s.auditor).filter(Boolean))];
@@ -2318,7 +2341,7 @@ function renderAuditorPerformance() {
 }
 
 function switchSubTab(tab) {
-  const tabs = ['all','shrinkage','auditor','issues','risk'];
+  const tabs = ['all','shrinkage','auditor','issues','risk','redflag'];
   tabs.forEach(t => {
     const btn = document.getElementById('sub-tab-' + t);
     const view = document.getElementById('sub-view-' + t);
@@ -2330,6 +2353,7 @@ function switchSubTab(tab) {
   });
   if (tab === 'issues') renderIssuesReport();
   else if (tab === 'risk') renderRiskAnalysis();
+  else if (tab === 'redflag') renderRedFlags();
   if (tab === 'all') { renderAllMetrics(getFilteredRows()); }
   else if (tab === 'shrinkage') { renderShrinkageTable(); }
   else if (tab === 'auditor') { renderAuditorPerformance(); }
@@ -2494,6 +2518,124 @@ function downloadRiskCSV() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `risk-analysis-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ═══ RED FLAGS — same auditor auditing the same store twice in a row ═══ */
+function computeRedFlagRuns() {
+  // Only Stock & Surprise audits count toward the rotation rule
+  const audits = displaySubs.filter(s => {
+    const t = s.auditType || 'stock';
+    return (t === 'stock' || t === 'surprise') && s.outlet && s.auditor;
+  });
+  // Ignore exact resubmissions of the same audit (same outlet + date + type + auditor)
+  const seen = new Set();
+  const unique = [];
+  audits.forEach(s => {
+    const k = `${s.outlet}|${s.date}|${s.auditType||'stock'}|${s.auditor}`;
+    if (seen.has(k)) return;
+    seen.add(k);
+    unique.push(s);
+  });
+  // Group per outlet, walk audits in date order, collect consecutive same-auditor runs
+  const byOutlet = {};
+  unique.forEach(s => { (byOutlet[s.outlet] = byOutlet[s.outlet] || []).push(s); });
+  const runs = [];
+  Object.keys(byOutlet).forEach(outlet => {
+    const list = byOutlet[outlet].sort((a,b) => String(a.date).localeCompare(String(b.date)));
+    let run = [list[0]];
+    for (let i = 1; i <= list.length; i++) {
+      const s = list[i];
+      if (s && s.auditor === run[run.length-1].auditor) { run.push(s); continue; }
+      if (run.length >= 2) {
+        runs.push({
+          outlet, auditor: run[0].auditor, count: run.length, audits: [...run],
+          firstDate: run[0].date, lastDate: run[run.length-1].date
+        });
+      }
+      if (s) run = [s];
+    }
+  });
+  return runs.sort((a,b) => b.count - a.count || String(b.lastDate).localeCompare(String(a.lastDate)));
+}
+
+function getRedFlagRows() {
+  const search  = (document.getElementById('rf-search')?.value || '').toLowerCase();
+  const auditor = document.getElementById('rf-auditor')?.value || '';
+  return computeRedFlagRuns().filter(r =>
+    (!search  || r.outlet.toLowerCase().includes(search)) &&
+    (!auditor || r.auditor === auditor)
+  );
+}
+
+function renderRedFlags() {
+  const allRuns = computeRedFlagRuns();
+
+  // Keep the auditor filter options in sync without losing the current selection
+  const sel = document.getElementById('rf-auditor');
+  const current = sel.value;
+  const auditors = [...new Set(allRuns.map(r => r.auditor))].sort();
+  sel.innerHTML = '<option value="">All Auditors</option>' + auditors.map(a => `<option>${a}</option>`).join('');
+  if (auditors.includes(current)) sel.value = current;
+
+  const rows = getRedFlagRows();
+  const flaggedOutlets  = new Set(rows.map(r => r.outlet)).size;
+  const flaggedAuditors = new Set(rows.map(r => r.auditor)).size;
+
+  document.getElementById('rf-metrics').innerHTML =
+    `<div class="metric"><div class="metric-val" style="color:#A32D2D;">${rows.length}</div><div class="metric-lbl">Red Flags</div></div>` +
+    `<div class="metric"><div class="metric-val">${flaggedOutlets}</div><div class="metric-lbl">Stores Involved</div></div>` +
+    `<div class="metric"><div class="metric-val">${flaggedAuditors}</div><div class="metric-lbl">Auditors Involved</div></div>`;
+
+  const tbl = document.getElementById('rf-table');
+  if (!rows.length) {
+    tbl.innerHTML = '<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">✅ No red flags — no auditor has audited the same store twice in a row.</td></tr>';
+    return;
+  }
+  const typeBadge = t => t === 'surprise'
+    ? '<span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:600;">⚡ Surprise</span>'
+    : '<span style="background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;border-radius:10px;padding:1px 8px;font-size:10px;font-weight:600;">📦 Stock</span>';
+  tbl.innerHTML =
+    `<thead><tr><th>#</th><th>Outlet</th><th>Auditor</th><th>Consecutive Audits</th><th>Audit Trail</th><th>Period</th></tr></thead>
+    <tbody>${rows.map((r,i) => `
+      <tr style="background:#FCEBEB;">
+        <td style="font-size:12px;color:var(--text-muted);font-family:'DM Mono',monospace;">${i+1}</td>
+        <td><strong style="font-size:13px;">${r.outlet}</strong></td>
+        <td style="font-size:13px;font-weight:600;color:#A32D2D;">🚩 ${r.auditor}</td>
+        <td style="font-family:'DM Mono',monospace;font-weight:700;color:#A32D2D;">${r.count} in a row</td>
+        <td>${r.audits.map(a => `<div style="font-size:12px;white-space:nowrap;padding:2px 0;"><span style="font-family:'DM Mono',monospace;">${a.date||'—'}</span> ${typeBadge(a.auditType||'stock')}</div>`).join('')}</td>
+        <td style="font-size:12px;font-family:'DM Mono',monospace;white-space:nowrap;">${r.firstDate} → ${r.lastDate}</td>
+      </tr>`).join('')}</tbody>`;
+}
+
+function updateRedFlagBadge() {
+  const badge = document.getElementById('redflag-count-badge');
+  if (!badge) return;
+  const n = computeRedFlagRuns().length;
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'inline-block' : 'none';
+}
+
+function downloadRedFlagsCSV() {
+  const rows = getRedFlagRows();
+  if (!rows.length) { alert('No red flags to export.'); return; }
+  const headers = ['Outlet','Auditor','Consecutive Audits','First Audit Date','Last Audit Date','Audit Trail'];
+  const csvRows = [headers.join(',')];
+  rows.forEach(r => {
+    const trail = r.audits.map(a => `${a.date} (${(a.auditType||'stock')==='surprise'?'Surprise':'Stock'})`).join('; ');
+    csvRows.push([
+      `"${(r.outlet||'').replace(/"/g,'""')}"`,
+      `"${(r.auditor||'').replace(/"/g,'""')}"`,
+      r.count,
+      `"${r.firstDate||''}"`,
+      `"${r.lastDate||''}"`,
+      `"${trail.replace(/"/g,'""')}"`
+    ].join(','));
+  });
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `red-flags-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
