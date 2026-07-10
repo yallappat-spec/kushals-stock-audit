@@ -255,6 +255,7 @@
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
+    <div class="topbar-badge" id="user-badge"></div>
     <div class="topbar-badge" id="top-badge">0 submissions</div>
     <button class="btn-sheets" id="sheets-btn" onclick="openSheetsModal()">
       <span class="sync-dot" id="sync-dot"></span>
@@ -266,8 +267,8 @@
 
 <div class="tabs-bar">
   <button class="tab active" onclick="goTab(&#39;form&#39;,this)">Audit Checklist</button>
-  <button class="tab" onclick="goTab(&#39;editor&#39;,this)">✎ Edit Checklist <span class="tab-count" id="edit-count">17</span></button>
-  <button class="tab" onclick="goTab(&#39;lists&#39;,this)">✍ Manage Lists</button>
+  <button class="tab" id="tab-editor" onclick="goTab(&#39;editor&#39;,this)">✎ Edit Checklist <span class="tab-count" id="edit-count">17</span></button>
+  <button class="tab" id="tab-lists" onclick="goTab(&#39;lists&#39;,this)">✍ Manage Lists</button>
   <button class="tab" onclick="goTab(&#39;summary&#39;,this)">Summary <span class="tab-count" id="tab-count">0</span></button>
 </div>
 
@@ -294,7 +295,7 @@
           <label>Auditor Name <span class="req">*</span></label>
           <div class="select-wrap">
             <select id="f-auditor"><option value="">Select auditor...</option><option>Yallappa</option><option>Rammurthy</option><option>Manjunath</option><option>Ganesh</option><option>Chandan</option><option>Jeevan</option><option>Chandrakanth</option><option>Udhaya Kumar T</option></select>
-            <button class="btn-add-opt" title="Add new auditor" onclick="quickAdd(&#39;auditor&#39;)">+</button>
+            <button class="btn-add-opt" id="btn-add-auditor" title="Add new auditor" onclick="quickAdd(&#39;auditor&#39;)">+</button>
           </div>
         </div>
         <div class="field">
@@ -401,7 +402,7 @@
       <div class="card-hdr">
         <div class="card-title">Operations &amp; Compliance Checklist <span id="form-check-count" style="font-size:11px;font-weight:400;color:var(--text-faint);margin-left:4px;">(17 points)</span></div>
         <div style="display:flex;gap:8px;">
-          <button class="btn-blue" onclick="openEditorForCurrentAudit()">✎ Edit Checklist</button>
+          <button class="btn-blue" id="btn-edit-checklist" onclick="openEditorForCurrentAudit()">✎ Edit Checklist</button>
         </div>
       </div>
       <div id="checklist-body">
@@ -1259,14 +1260,27 @@ function doGet(e) {
 
 <script>
 // ══════════════════════════════════════════════════════
-// AUTH
+// AUTH — two logins
+//   Admin: User ID "Admin", password Admin@123 → full access
+//   Audit: User ID "Audit", password Audit@123 → submit audits only
+//          (no editing or deleting)
 // ══════════════════════════════════════════════════════
-const AUTH_USER = 'Audit';
-const AUTH_PASS = 'Audit@123';
+const AUTH_USERS = [
+  { uid: 'Admin', pwd: 'Admin@123', role: 'admin'   },
+  { uid: 'Audit', pwd: 'Audit@123', role: 'auditor' },
+];
+
+function authRole() {
+  const r = sessionStorage.getItem('kfl_auth');
+  // 'ok' = session from before roles existed (old Audit login) → audit role
+  return (r === 'admin' || r === 'auditor') ? r : r === 'ok' ? 'auditor' : null;
+}
+function isAdmin() { return authRole() === 'admin'; }
 
 function checkLogin() {
-  if (sessionStorage.getItem('kfl_auth') === 'ok') {
+  if (authRole()) {
     document.getElementById('login-overlay').style.display = 'none';
+    applyRole();
   }
 }
 
@@ -1274,10 +1288,12 @@ function doLogin() {
   const uid = document.getElementById('login-uid').value.trim();
   const pwd = document.getElementById('login-pwd').value;
   const err = document.getElementById('login-error');
-  if (uid === AUTH_USER && pwd === AUTH_PASS) {
-    sessionStorage.setItem('kfl_auth', 'ok');
+  const user = AUTH_USERS.find(u => u.uid.toLowerCase() === uid.toLowerCase() && u.pwd === pwd);
+  if (user) {
+    sessionStorage.setItem('kfl_auth', user.role);
     document.getElementById('login-overlay').style.display = 'none';
     err.style.display = 'none';
+    applyRole();
   } else {
     err.style.display = 'block';
     document.getElementById('login-pwd').value = '';
@@ -1291,6 +1307,28 @@ function doLogout() {
   document.getElementById('login-pwd').value = '';
   document.getElementById('login-error').style.display = 'none';
   document.getElementById('login-overlay').style.display = 'flex';
+}
+
+function applyRole() {
+  const admin = isAdmin();
+  // Admin-only tabs
+  const tabEditor = document.getElementById('tab-editor');
+  const tabLists  = document.getElementById('tab-lists');
+  if (tabEditor) tabEditor.style.display = admin ? '' : 'none';
+  if (tabLists)  tabLists.style.display  = admin ? '' : 'none';
+  // "Edit Checklist" button on the audit form
+  const eb = document.getElementById('btn-edit-checklist');
+  if (eb) eb.style.display = admin ? '' : 'none';
+  // "+" quick-add buttons next to dropdowns modify the master lists → admin only
+  document.querySelectorAll('.btn-add-opt').forEach(b => { b.style.display = admin ? '' : 'none'; });
+  // Signed-in user badge in the topbar
+  const badge = document.getElementById('user-badge');
+  if (badge) badge.textContent = '👤 ' + (admin ? 'Admin' : 'Audit');
+  // If an admin-only panel was open, return to the audit form
+  if (!admin && (document.getElementById('editor-panel').classList.contains('active') ||
+                 document.getElementById('lists-panel').classList.contains('active'))) {
+    goTab('form', document.querySelectorAll('.tab')[0]);
+  }
 }
 
 checkLogin();
@@ -1402,6 +1440,7 @@ let quickModalKey = '';
 // TABS
 // ══════════════════════════════════════════════════════
 function goTab(tab, btn) {
+  if ((tab === 'editor' || tab === 'lists') && !isAdmin()) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -1533,6 +1572,7 @@ function getEditorChecks() {
 }
 
 function openEditorForCurrentAudit() {
+  if (!isAdmin()) return;
   goTab('editor', document.querySelectorAll('.tab')[1]);
   setEditorMode(currentAuditType === 'cctv' ? 'cctv' : currentAuditType === 'ecommerce' ? 'ecommerce' : 'stock');
 }
@@ -1664,6 +1704,7 @@ const quickLabels = {auditor:'Auditor Name', outlet:'Outlet Name', cluster:'Clus
 const quickPlaceholders = {auditor:'e.g. Nagaraj', outlet:'e.g. BLR - NEW MALL NAME', cluster:'e.g. Suresh', area:'e.g. Ravi Kumar'};
 
 function quickAdd(key) {
+  if (!isAdmin()) return;
   quickModalKey = key;
   document.getElementById('quick-modal-title').textContent = 'Add New ' + quickLabels[key];
   document.getElementById('quick-modal-label').innerHTML = quickLabels[key] + ' <span class="req">*</span>';
@@ -1737,6 +1778,7 @@ function resetForm(silent) {
   for(const k in checkStates)delete checkStates[k];
   for(const k in photoStates)delete photoStates[k];
   document.querySelectorAll('.tog button').forEach(b=>b.classList.remove('ok','issue'));
+  applyRole(); // restore the locked auditor name for auditor logins
   document.querySelectorAll('.issue-wrap').forEach(el=>el.style.display='none');
   document.querySelectorAll('.issue-wrap input[type="text"]').forEach(el=>el.value='');
   document.querySelectorAll('.photo-preview').forEach(el=>el.innerHTML='');
@@ -1984,7 +2026,7 @@ function renderTable() {
   const rows = getFilteredRows();
   if (!rows.length) { document.getElementById('sum-table').innerHTML='<tr><td style="padding:28px;text-align:center;color:var(--text-muted);">No records match filter.</td></tr>'; return; }
   document.getElementById('sum-table').innerHTML=`<thead><tr><th>Outlet</th><th>Auditor</th><th>Date</th><th>Cluster</th><th>Shrinkage %</th><th>Score</th><th>Issues</th><th></th></tr></thead><tbody>${rows.map((s,i)=>{const sc=s.score!==null&&s.score!==''?Number(s.score):null,sc2=sc===null?'var(--text-faint)':sc>=80?'var(--green)':sc>=60?'var(--amber)':'var(--red)',bc=sc===null?'#D3D1C7':sc>=80?'#639922':sc>=60?'#EF9F27':'#E24B4A',ih=s.issues.length===0?'<span class="badge badge-g">Clean</span>':`<span class="badge badge-r">${s.issues.length} issue${s.issues.length>1?'s':''} found</span>${s.issues.map(i=>`<div class="issue-item-row"><div class="issue-item-label">↳ ${i.label}</div>${i.note?`<div class="issue-item-note">${i.note}</div>`:''}</div>`).join('')}`;return`<tr><td><strong style="font-size:13px;font-weight:600;">${s.outlet}</strong><br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">${s.month||''} ${s.qtr||''}</span><br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;${(s.auditType||'stock')==='surprise'?'background:#E6F1FB;color:#185FA5;':(s.auditType||'stock')==='cctv'?'background:#F3E8FF;color:#6B21A8;':(s.auditType||'stock')==='ecommerce'?'background:#CCFBF1;color:#0F766E;':'background:#F0EDE6;color:#6B6B66;'}">${(s.auditType||'stock')==='surprise'?'⚡ Surprise':(s.auditType||'stock')==='cctv'?'📹 CCTV':(s.auditType||'stock')==='ecommerce'?'🛒 Ecommerce':'📦 Stock'}</span>${(s.auditType||'stock')==='cctv'&&s.watchType?`<br><span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#F3E8FF;color:#6B21A8;">${s.watchType}</span>`:''}${(s.auditType||'stock')==='ecommerce'&&s.ecIssueDate?`<br><span style="font-size:11px;color:var(--text-faint);font-family:'DM Mono',monospace;">Issue: ${s.ecIssueDate}</span>`:''}
-</td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">Order #</span><br><strong style="font-size:13px;">${s.ecOrder||'—'}</strong>`:`${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">From store?</span><br><strong style="font-size:14px;color:${s.ecStoreIssue==='Yes'?'var(--red)':s.ecStoreIssue==='No'?'var(--green)':'var(--text-muted)'}">${s.ecStoreIssue||'—'}</strong>`:`<span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span>`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:12px;display:block;max-width:200px;">${s.ecIssue||'—'}</span>`:ih}</td><td style="white-space:nowrap;"><button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> <button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button> <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button></td></tr>`;}).join('')}</tbody>`;
+</td><td>${s.auditor}</td><td style="font-size:12px;font-family:'DM Mono',monospace;">${s.date}<br><span style="color:var(--text-faint);font-size:11px;">${s.ts||''}</span></td><td>${s.cluster}</td><td style="font-family:'DM Mono',monospace;">${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">Order #</span><br><strong style="font-size:13px;">${s.ecOrder||'—'}</strong>`:`${s.spct?String(s.spct).replace(/%$/,'')+'%':'—'}${s.sqty?'<br><span style="font-size:11px;color:var(--text-faint);">Qty: '+s.sqty+'</span>':''}`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:11px;color:var(--text-muted);">From store?</span><br><strong style="font-size:14px;color:${s.ecStoreIssue==='Yes'?'var(--red)':s.ecStoreIssue==='No'?'var(--green)':'var(--text-muted)'}">${s.ecStoreIssue||'—'}</strong>`:`<span style="font-size:18px;font-weight:600;color:${sc2};font-family:'DM Mono',monospace;">${sc!==null?sc+'%':'—'}</span>${sc!==null?`<div class="bar-wrap"><div class="bar-fill" style="width:${sc}%;background:${bc};"></div></div>`:''}<span style="font-size:11px;color:var(--text-faint);">${s.answered}/${(s.auditType||'stock')==='cctv'?CCTV_CHECKS.length:CHECKS.length}</span>`}</td><td>${(s.auditType||'stock')==='ecommerce'?`<span style="font-size:12px;display:block;max-width:200px;">${s.ecIssue||'—'}</span>`:ih}</td><td style="white-space:nowrap;">${isAdmin()?`<button class="btn-icon edit-btn" title="Edit" onclick="openEditModal(${displaySubs.indexOf(s)})">✎</button> `:''}<button class="btn-icon" title="Download PDF" onclick="downloadPDF(${displaySubs.indexOf(s)})" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);">⬇ PDF</button>${isAdmin()?` <button class="btn-icon del" title="Delete" onclick="deleteEntry(${displaySubs.indexOf(s)})">✕</button>`:''}</td></tr>`;}).join('')}</tbody>`;
 }
 
 function downloadPDF(idx) {
@@ -2988,6 +3030,7 @@ let editCheckStates = {};
 let editChecks = [];
 
 function openEditModal(idx) {
+  if (!isAdmin()) { alert('Admin login required to edit audits.'); return; }
   editIdx = idx;
   const s = displaySubs[idx];
   // Populate selects from LISTS
@@ -3115,6 +3158,7 @@ async function saveEdit() {
 }
 
 function deleteEntry(idx) {
+  if (!isAdmin()) { alert('Admin login required to delete audits.'); return; }
   const s = displaySubs[idx];
   if (!confirm('Delete audit for "'+s.outlet+'" on '+s.date+'?')) return;
   if (SHEETS_URL && s._row) {
@@ -3172,6 +3216,7 @@ function fetchListsFromSheets() {
 
 buildChecklist();
 populateAllSelects();
+applyRole();
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 updateSheetsIndicator();
 fetchChecklistFromSheets();
