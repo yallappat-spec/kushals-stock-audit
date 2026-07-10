@@ -745,7 +745,7 @@
         <button id="sub-tab-auditor" onclick="switchSubTab('auditor')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Auditor Performance</button>
         <button id="sub-tab-issues" onclick="switchSubTab('issues')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Issues Report</button>
         <button id="sub-tab-risk" onclick="switchSubTab('risk')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">Risk Outlet Analysis</button>
-        <button id="sub-tab-redflag" onclick="switchSubTab('redflag')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">🚩 Red Flags <span id="redflag-count-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:5px;font-family:'DM Mono',monospace;font-weight:600;"></span></button>
+        <button id="sub-tab-redflag" onclick="switchSubTab('redflag')" style="background:none;border:none;border-bottom:2.5px solid transparent;padding:8px 18px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:-1px;">🚩 Audit Rotation - Red Flags <span id="redflag-count-badge" style="display:none;background:#A32D2D;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:5px;font-family:'DM Mono',monospace;font-weight:600;"></span></button>
       </div>
 
       <!-- ALL SUBMISSIONS VIEW -->
@@ -969,7 +969,7 @@
       <div id="sub-view-redflag" style="display:none;">
         <div class="card" style="margin-bottom:14px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <span style="font-size:13px;font-weight:600;">🚩 Red Flags — Auditor Rotation</span>
+            <span style="font-size:13px;font-weight:600;">🚩 Audit Rotation - Red Flags</span>
             <button class="btn-primary" onclick="downloadRedFlagsCSV()" style="font-size:13px;padding:7px 16px;">↓ Download Red Flags CSV</button>
           </div>
           <div class="info-pill" style="margin-bottom:12px;">ⓘ <strong>📦 Stock audits:</strong> red flag when the same auditor audits the same store in <strong>consecutive quarters</strong>. &nbsp;<strong>⚡ Surprise audits:</strong> red flag when the same auditor audits the same store in <strong>consecutive months</strong>. The two audit types are checked separately.</div>
