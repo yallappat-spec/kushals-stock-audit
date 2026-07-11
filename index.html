@@ -23,10 +23,10 @@
     --shadow-lg:0 8px 30px rgba(15,23,42,0.12);
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  body{font-family:'DM Sans',sans-serif;background:radial-gradient(1100px 420px at 15% -60px,#E4E9FB 0%,rgba(228,233,251,0) 60%),radial-gradient(900px 380px at 90% -80px,#FBF3E0 0%,rgba(251,243,224,0) 55%),var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;}
 
   /* TOPBAR */
-  .topbar{background:linear-gradient(120deg,#111C3D 0%,#1E2A5E 55%,#312E81 100%);padding:15px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(17,28,61,0.28);}
+  .topbar{background:linear-gradient(120deg,#0C1530 0%,#1E2A5E 55%,#312E81 100%);padding:15px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 14px rgba(17,28,61,0.28);border-bottom:2.5px solid;border-image:linear-gradient(90deg,#F5C04E 0%,#E8963A 35%,#6D5EF2 75%,#312E81 100%) 1;}
   .topbar-left{display:flex;align-items:center;gap:14px;}
   .logo-box{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#F5C04E,#E8963A);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:0.5px;color:#2B1A05;font-family:'DM Mono',monospace;box-shadow:0 3px 10px rgba(232,150,58,0.35);}
   .topbar h1{font-size:15.5px;font-weight:700;color:#FFFFFF;letter-spacing:0.2px;}
@@ -59,6 +59,20 @@
 
   .main{max-width:920px;margin:0 auto;padding:28px 24px 60px;}
   .panel{display:none;} .panel.active{display:block;}
+
+  /* HERO — Retail Operations Excellence */
+  .hero{position:relative;overflow:hidden;border-radius:18px;background:linear-gradient(118deg,#0C1530 0%,#16224E 45%,#2B2A72 78%,#3B3691 100%);padding:30px 34px 26px;margin-bottom:22px;box-shadow:0 14px 40px rgba(17,28,61,0.28);}
+  .hero::before{content:"";position:absolute;top:-90px;right:-60px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(245,192,78,0.28) 0%,rgba(245,192,78,0) 68%);pointer-events:none;}
+  .hero::after{content:"";position:absolute;bottom:-120px;left:-40px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(109,94,242,0.30) 0%,rgba(109,94,242,0) 70%);pointer-events:none;}
+  .hero-kicker{font-family:'DM Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:2.5px;color:#F5C04E;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .hero-kicker::after{content:"";height:1px;width:56px;background:linear-gradient(90deg,rgba(245,192,78,0.75),rgba(245,192,78,0));}
+  .hero h2{font-size:27px;font-weight:700;color:#FFFFFF;letter-spacing:0.2px;line-height:1.25;}
+  .hero h2 .gold{background:linear-gradient(92deg,#F8D284 0%,#F5C04E 45%,#E8963A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hero p{font-size:13.5px;color:rgba(226,232,255,0.75);margin-top:6px;max-width:560px;}
+  .hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;position:relative;}
+  .hero-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.14);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:500;color:rgba(236,240,255,0.88);backdrop-filter:blur(4px);}
+  .hero-chip b{color:#F5C04E;font-weight:600;}
+  @media(max-width:620px){.hero{padding:24px 22px 20px;}.hero h2{font-size:22px;}}
 
   /* TOASTS */
   .toast{border-radius:var(--radius-sm);padding:12px 18px;font-size:14px;display:none;margin-bottom:18px;font-weight:500;}
@@ -168,7 +182,7 @@
   .metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
   @media(max-width:600px){.metric-row{grid-template-columns:1fr 1fr;}}
   .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 14px;text-align:center;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform 0.15s,box-shadow 0.15s;}
-  .metric::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-grad);opacity:0.85;}
+  .metric::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F5C04E 0%,#E8963A 30%,#4F46E5 70%,#4338CA 100%);opacity:0.9;}
   .metric:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
   .metric-val{font-size:30px;font-weight:600;font-family:'DM Mono',monospace;}
   .metric-lbl{font-size:11px;color:var(--text-faint);margin-top:4px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;}
@@ -206,8 +220,9 @@
   @media(max-width:760px){.chart-grid{grid-template-columns:1fr !important;}}
 
   /* LOGIN */
-  .login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#111C3D 0%,#1E2A5E 55%,#312E81 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .login-box{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.35);text-align:center;}
+  .login-overlay{position:fixed;inset:0;background:radial-gradient(900px 500px at 80% -10%,rgba(245,192,78,0.14) 0%,rgba(245,192,78,0) 55%),linear-gradient(135deg,#0C1530 0%,#1E2A5E 55%,#312E81 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.35);text-align:center;border-top:4px solid #F5C04E;}
+  .login-kicker{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:2.2px;color:#B45309;text-transform:uppercase;margin-bottom:6px;}
   .login-logo{width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,#F5C04E,#E8963A);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#2B1A05;font-family:'DM Mono',monospace;margin:0 auto 18px;box-shadow:0 6px 18px rgba(232,150,58,0.4);}
   .login-title{font-size:22px;font-weight:700;color:#0F172A;margin-bottom:4px;}
   .login-sub{font-size:13px;color:#64748B;margin-bottom:30px;}
@@ -228,6 +243,7 @@
 <div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <div class="login-logo">KFL</div>
+    <div class="login-kicker">Retail Operations Excellence</div>
     <div class="login-title">Audit Management System</div>
     <div class="login-sub">Kushals Fashion Jewellery · Sign in to continue</div>
     <div class="login-error" id="login-error">Incorrect User ID or Password. Please try again.</div>
@@ -251,7 +267,7 @@
     <div class="logo-box">KFL</div>
     <div>
       <h1>Audit Management System</h1>
-      <p>Kushals Fashion Jewellery · Inventory &amp; Operations Audit <span style="background:rgba(245,192,78,0.18);color:#F5C04E;border:1px solid rgba(245,192,78,0.35);border-radius:10px;padding:1px 8px;font-size:10px;margin-left:4px;font-weight:600;">v3</span></p>
+      <p>Kushals Fashion Jewellery · Retail Operations Excellence <span style="background:rgba(245,192,78,0.18);color:#F5C04E;border:1px solid rgba(245,192,78,0.35);border-radius:10px;padding:1px 8px;font-size:10px;margin-left:4px;font-weight:600;">v3</span></p>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
@@ -276,6 +292,18 @@
 
   <!-- ═══ AUDIT FORM ═══ -->
   <div id="form-panel" class="panel active">
+    <div class="hero">
+      <div class="hero-kicker">Kushals Fashion Jewellery</div>
+      <h2>Retail Operations <span class="gold">Excellence</span></h2>
+      <p>Driving inventory accuracy, process compliance and shrinkage control across every outlet — one audit at a time.</p>
+      <div class="hero-chips">
+        <span class="hero-chip">📦 <b>Stock</b> Accuracy</span>
+        <span class="hero-chip">⚡ <b>Surprise</b> Checks</span>
+        <span class="hero-chip">📹 <b>CCTV</b> Vigilance</span>
+        <span class="hero-chip">🛒 <b>E-commerce</b> Quality</span>
+        <span class="hero-chip">🚩 <b>Auditor</b> Rotation</span>
+      </div>
+    </div>
     <div class="toast toast-green" id="toast">✓ Audit saved. View Summary tab for results.</div>
 
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
