@@ -859,7 +859,7 @@
             <div style="height:300px;"><canvas id="sh-chart-outlets"></canvas></div>
           </div>
           <div class="card" style="margin-bottom:0;">
-            <div class="card-title">Monthly Shrinkage Trend</div>
+            <div class="card-title">Quarterly Shrinkage Trend</div>
             <div style="height:300px;"><canvas id="sh-chart-trend"></canvas></div>
           </div>
         </div>
@@ -2276,19 +2276,24 @@ function renderShrinkageCharts(rows) {
               y:{ticks:{font:CHART_FONT},grid:{display:false}}}}
   });
 
-  // Monthly trend: shrinkage value bars + shrinkage % line
-  const byMonth = {};
+  // Quarterly trend: shrinkage value bars + shrinkage % line (FY: Q1=Apr–Jun … Q4=Jan–Mar)
+  const byQtr = {};
   rows.forEach(s => {
-    const m = s.month; if (!m) return;
-    if (!byMonth[m]) byMonth[m] = {sval:0,sale:0};
-    byMonth[m].sval += parseNum(s.sval); byMonth[m].sale += parseNum(s.sale);
+    let q = s.qtr;
+    if (!q && s.month) {
+      const mi = MONTH_ORDER.indexOf(s.month) + 1;
+      if (mi) q = mi <= 3 ? 'Q4' : mi <= 6 ? 'Q1' : mi <= 9 ? 'Q2' : 'Q3';
+    }
+    if (!q) return;
+    if (!byQtr[q]) byQtr[q] = {sval:0,sale:0};
+    byQtr[q].sval += parseNum(s.sval); byQtr[q].sale += parseNum(s.sale);
   });
-  const months = MONTH_ORDER.filter(m => byMonth[m]);
+  const quarters = ['Q1','Q2','Q3','Q4'].filter(q => byQtr[q]);
   makeChart('sh-chart-trend', {
-    data:{labels:months.map(m=>m.substring(0,3)),datasets:[
-      {type:'bar',label:'Shrinkage Value (₹)',data:months.map(m=>byMonth[m].sval),
+    data:{labels:quarters,datasets:[
+      {type:'bar',label:'Shrinkage Value (₹)',data:quarters.map(q=>byQtr[q].sval),
        backgroundColor:'rgba(79,70,229,0.65)',borderRadius:5,maxBarThickness:30,yAxisID:'y'},
-      {type:'line',label:'Shrinkage %',data:months.map(m=>byMonth[m].sale?+(byMonth[m].sval/byMonth[m].sale*100).toFixed(4):0),
+      {type:'line',label:'Shrinkage %',data:quarters.map(q=>byQtr[q].sale?+(byQtr[q].sval/byQtr[q].sale*100).toFixed(4):0),
        borderColor:'#DC2626',backgroundColor:'#DC2626',tension:0.35,pointRadius:4,yAxisID:'y1'}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{labels:{font:CHART_FONT,usePointStyle:true,boxWidth:8}}},
